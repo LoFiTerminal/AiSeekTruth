@@ -2,8 +2,11 @@
   "name": "aiseektruth",
   "version": "1.0.0",
   "description": "Decentralized encrypted P2P chat application with Signal Protocol encryption",
-  "main": "src/main/main.js",
-  "author": "LofiTerminal",
+  "main": "dist-electron/main.js",
+  "author": {
+    "name": "LofiTerminal",
+    "email": "contact@lofiterminal.com"
+  },
   "license": "GPL-3.0",
   "repository": {
     "type": "git",
@@ -77,8 +80,7 @@
     "linux": {
       "target": [
         "AppImage",
-        "deb",
-        "rpm"
+        "deb"
       ],
       "icon": "build/icons/",
       "category": "Network"
