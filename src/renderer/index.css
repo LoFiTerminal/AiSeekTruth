@@ -1,36 +1,39 @@
-/* ==================== ICQ-INSPIRED DESIGN ==================== */
-/* Clean, modern take on classic ICQ messenger */
+/* ==================== RETRO ICQ DESIGN (1999-2003) ==================== */
+/* Authentic ICQ messenger aesthetic from the golden era */
 
 :root {
-  /* ICQ-inspired colors */
-  --icq-blue: #3b7dd6;
-  --icq-blue-hover: #2d6bc7;
-  --icq-blue-light: #e8f2ff;
-  --icq-green: #00cc66;
+  /* Classic ICQ colors */
+  --icq-blue: #4682b4;
+  --icq-blue-dark: #315a7f;
+  --icq-blue-light: #d0e5f5;
+  --icq-green: #00cc00;
+  --icq-flower-green: #66cc00;
   --icq-orange: #ff9900;
-  --icq-red: #ff3366;
+  --icq-red: #cc0000;
+  --icq-yellow: #ffcc00;
 
-  /* Backgrounds */
-  --bg-primary: #f5f7fa;
+  /* Windows XP-style backgrounds */
+  --bg-primary: #ece9d8;
   --bg-secondary: #ffffff;
-  --bg-sidebar: #e8ecf0;
-  --bg-hover: #f0f3f6;
+  --bg-sidebar: #d4d0c8;
+  --bg-hover: #316ac5;
+  --bg-selected: #0a246a;
 
-  /* Borders & shadows */
-  --border-light: #d0d7de;
-  --border-medium: #9ca3af;
-  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08);
-  --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.12);
+  /* Classic borders */
+  --border-dark: #808080;
+  --border-light: #ffffff;
+  --border-shadow: #404040;
 
   /* Text colors */
-  --text-primary: #1f2937;
-  --text-secondary: #6b7280;
-  --text-dim: #9ca3af;
+  --text-primary: #000000;
+  --text-secondary: #555555;
+  --text-white: #ffffff;
 
   /* Status colors */
-  --status-online: #00cc66;
+  --status-online: #00cc00;
   --status-away: #ff9900;
-  --status-offline: #9ca3af;
+  --status-offline: #808080;
+  --status-dnd: #cc0000;
 }
 
 /* ==================== RESET ==================== */
@@ -49,77 +52,99 @@ html, body, #root {
 body {
   background: var(--bg-primary);
   color: var(--text-primary);
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-  font-size: 14px;
-  line-height: 1.5;
+  font-family: Tahoma, Verdana, Arial, sans-serif;
+  font-size: 11px;
+  line-height: 1.4;
 }
 
-/* ==================== SCROLLBAR ==================== */
+/* ==================== CLASSIC SCROLLBAR ==================== */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 16px;
+  height: 16px;
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--bg-sidebar);
+  background: var(--bg-primary);
+  border-left: 1px solid var(--border-dark);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--border-medium);
-  border-radius: 4px;
+  background: linear-gradient(to right, #e8e4d8, #d4d0c8);
+  border: 2px outset var(--border-light);
+  border-radius: 0;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--text-secondary);
+  background: linear-gradient(to right, #d8d4c8, #c4c0b8);
 }
 
-/* ==================== BUTTONS ==================== */
+::-webkit-scrollbar-button {
+  background: linear-gradient(to bottom, #e8e4d8, #d4d0c8);
+  border: 1px outset var(--border-light);
+  height: 16px;
+}
+
+/* ==================== CLASSIC 3D BUTTONS ==================== */
 button {
-  font-family: inherit;
-  font-size: 14px;
-  padding: 10px 20px;
-  border: none;
-  border-radius: 6px;
-  background: var(--icq-blue);
-  color: white;
+  font-family: Tahoma, Verdana, Arial, sans-serif;
+  font-size: 11px;
+  padding: 4px 12px;
+  border: 2px outset var(--border-light);
+  background: linear-gradient(to bottom, #f0f0f0 0%, #d8d8d8 100%);
+  color: var(--text-primary);
   cursor: pointer;
-  transition: all 0.2s;
-  font-weight: 500;
+  font-weight: normal;
+  border-radius: 0;
+  min-height: 23px;
 }
 
 button:hover {
-  background: var(--icq-blue-hover);
-  transform: translateY(-1px);
-  box-shadow: var(--shadow-md);
+  background: linear-gradient(to bottom, #f8f8f8 0%, #e0e0e0 100%);
+}
+
+button:active {
+  border-style: inset;
+  background: linear-gradient(to bottom, #d0d0d0 0%, #e8e8e8 100%);
+  padding: 5px 11px 3px 13px;
 }
 
 button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-  transform: none;
+  color: var(--border-dark);
+  cursor: default;
+  background: linear-gradient(to bottom, #e8e8e8 0%, #d0d0d0 100%);
+}
+
+/* Primary button (blue) */
+button.primary {
+  background: linear-gradient(to bottom, var(--icq-blue) 0%, var(--icq-blue-dark) 100%);
+  color: white;
+  font-weight: bold;
+  border: 2px outset #6a9fd4;
+}
+
+button.primary:hover {
+  background: linear-gradient(to bottom, #5a92c4 0%, #416a8f 100%);
 }
 
 /* ==================== INPUTS ==================== */
 input, textarea {
-  font-family: inherit;
-  font-size: 14px;
-  padding: 10px 12px;
-  border: 1px solid var(--border-light);
-  border-radius: 6px;
-  background: var(--bg-secondary);
+  font-family: Tahoma, Verdana, Arial, sans-serif;
+  font-size: 11px;
+  padding: 3px 4px;
+  border: 2px inset var(--border-light);
+  background: white;
   color: var(--text-primary);
   width: 100%;
-  transition: border-color 0.2s;
+  border-radius: 0;
 }
 
 input:focus, textarea:focus {
   outline: none;
-  border-color: var(--icq-blue);
-  box-shadow: 0 0 0 3px var(--icq-blue-light);
+  background: #ffffcc;
 }
 
 input::placeholder, textarea::placeholder {
-  color: var(--text-dim);
+  color: var(--border-dark);
 }
 
 /* ==================== SETUP WIZARD ==================== */
@@ -129,72 +154,84 @@ input::placeholder, textarea::placeholder {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #5a88bd 0%, #4a78ad 100%);
 }
 
 .setup-container {
-  width: 450px;
+  width: 420px;
   max-width: 90%;
-  background: var(--bg-secondary);
-  border-radius: 12px;
-  padding: 40px;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  background: var(--bg-primary);
+  border: 3px outset var(--border-light);
+  padding: 4px;
+  box-shadow: 4px 4px 8px rgba(0, 0, 0, 0.5);
 }
 
 .setup-header {
-  text-align: center;
-  margin-bottom: 30px;
+  background: linear-gradient(to right, var(--icq-blue) 0%, var(--icq-blue-dark) 100%);
+  padding: 4px 8px;
+  color: white;
+  font-weight: bold;
+  font-size: 11px;
+  margin-bottom: 12px;
+  border: 1px solid var(--icq-blue-dark);
 }
 
 .setup-icon {
-  width: 60px;
-  height: 60px;
-  color: var(--icq-blue);
-  margin: 0 auto 20px;
+  width: 48px;
+  height: 48px;
+  color: var(--icq-green);
+  margin: 12px auto;
+  filter: drop-shadow(2px 2px 2px rgba(0, 0, 0, 0.3));
 }
 
 .setup-title {
-  font-size: 28px;
-  font-weight: 700;
+  font-size: 16px;
+  font-weight: bold;
   color: var(--text-primary);
+  text-align: center;
   margin-bottom: 8px;
 }
 
 .setup-subtitle {
-  font-size: 14px;
+  font-size: 11px;
   color: var(--text-secondary);
+  text-align: center;
+  margin-bottom: 16px;
 }
 
 .setup-form {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
+  padding: 12px;
+  background: var(--bg-secondary);
+  border: 2px groove var(--border-light);
+  margin: 8px;
 }
 
 .form-group {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 4px;
+  margin-bottom: 12px;
 }
 
 .form-group label {
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--text-secondary);
+  font-size: 11px;
+  font-weight: bold;
+  color: var(--text-primary);
 }
 
 .form-error {
   color: var(--icq-red);
-  font-size: 12px;
-  margin-top: 4px;
+  font-size: 10px;
+  margin-top: 2px;
 }
 
 .setup-footer {
   text-align: center;
-  margin-top: 24px;
-  font-size: 12px;
-  color: var(--text-dim);
-  line-height: 1.6;
+  margin-top: 12px;
+  padding: 8px;
+  font-size: 10px;
+  color: var(--text-secondary);
+  line-height: 1.4;
 }
 
 /* ==================== APP CONTAINER ==================== */
@@ -202,124 +239,132 @@ input::placeholder, textarea::placeholder {
   display: flex;
   width: 100%;
   height: 100%;
-  background: var(--bg-secondary);
+  background: var(--bg-primary);
+  border: 3px solid var(--border-dark);
 }
 
-/* ==================== CONTACT LIST (ICQ-style sidebar) ==================== */
+/* ==================== CONTACT LIST (Classic ICQ sidebar) ==================== */
 .contact-list {
-  width: 280px;
+  width: 200px;
   height: 100%;
   background: var(--bg-sidebar);
-  border-right: 1px solid var(--border-light);
+  border-right: 2px solid var(--border-dark);
   display: flex;
   flex-direction: column;
 }
 
 .user-info {
-  padding: 16px;
-  background: var(--bg-secondary);
-  border-bottom: 1px solid var(--border-light);
+  padding: 8px;
+  background: linear-gradient(to right, var(--icq-blue) 0%, var(--icq-blue-dark) 100%);
+  border-bottom: 2px solid var(--border-dark);
+  color: white;
 }
 
 .user-name {
-  font-size: 16px;
-  font-weight: 600;
-  color: var(--text-primary);
-  margin-bottom: 4px;
+  font-size: 12px;
+  font-weight: bold;
+  color: white;
+  margin-bottom: 3px;
+  text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.5);
 }
 
 .user-key {
-  font-size: 11px;
-  color: var(--text-dim);
+  font-size: 9px;
+  color: var(--icq-blue-light);
   font-family: 'Courier New', monospace;
 }
 
 .add-contact-btn {
-  width: calc(100% - 32px);
-  margin: 16px;
+  margin: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  font-size: 13px;
+  gap: 4px;
+  font-size: 11px;
 }
 
 .add-contact-form {
-  padding: 16px;
+  padding: 8px;
   background: var(--bg-secondary);
-  border-bottom: 1px solid var(--border-light);
+  border: 2px groove var(--border-light);
+  margin: 8px;
 }
 
 .add-contact-form h3 {
-  font-size: 14px;
-  font-weight: 600;
-  margin-bottom: 12px;
+  font-size: 11px;
+  font-weight: bold;
+  margin-bottom: 8px;
   color: var(--text-primary);
 }
 
 .add-contact-actions {
   display: flex;
-  gap: 8px;
-  margin-top: 12px;
+  gap: 4px;
+  margin-top: 8px;
 }
 
 .add-contact-actions button {
   flex: 1;
-  padding: 8px;
-  font-size: 13px;
+  padding: 3px 8px;
+  font-size: 11px;
 }
 
 .contacts-scroll {
   flex: 1;
   overflow-y: auto;
-  padding: 8px;
+  padding: 4px;
+  background: white;
+  border: 2px inset var(--border-light);
+  margin: 4px;
 }
 
-/* ICQ-style compact contact item */
+/* Classic ICQ contact item */
 .contact-item {
-  padding: 10px 12px;
-  margin-bottom: 2px;
+  padding: 3px 6px;
+  margin-bottom: 1px;
   cursor: pointer;
-  transition: background 0.15s;
   display: flex;
   align-items: center;
-  gap: 10px;
-  border-radius: 6px;
+  gap: 6px;
   background: transparent;
+  border: 1px solid transparent;
 }
 
 .contact-item:hover {
   background: var(--bg-hover);
+  color: white;
+  border: 1px dotted var(--icq-blue-light);
 }
 
 .contact-item.active {
-  background: var(--icq-blue-light);
-  border-left: 3px solid var(--icq-blue);
+  background: var(--bg-selected);
+  color: white;
+  border: 1px solid var(--icq-blue);
 }
 
 .contact-avatar {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  background: var(--bg-secondary);
-  border: 2px solid var(--border-light);
+  width: 16px;
+  height: 16px;
+  background: var(--bg-sidebar);
+  border: 1px solid var(--border-dark);
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
   color: var(--text-secondary);
   position: relative;
+  font-size: 8px;
 }
 
-/* ICQ-style status indicator */
+/* Classic ICQ status flower */
 .status-dot {
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
+  width: 8px;
+  height: 8px;
   position: absolute;
   bottom: -2px;
   right: -2px;
-  border: 2px solid var(--bg-sidebar);
+  border: 1px solid white;
+  box-shadow: 0 0 2px rgba(0, 0, 0, 0.5);
 }
 
 .status-dot.online {
@@ -340,32 +385,32 @@ input::placeholder, textarea::placeholder {
 }
 
 .contact-name {
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--text-primary);
+  font-size: 11px;
+  font-weight: bold;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 .contact-status {
-  font-size: 12px;
-  color: var(--text-secondary);
+  font-size: 9px;
+  font-style: italic;
 }
 
 .unread-badge {
   background: var(--icq-red);
   color: white;
-  border-radius: 12px;
-  padding: 2px 8px;
-  font-size: 11px;
-  font-weight: 600;
+  padding: 1px 5px;
+  font-size: 9px;
+  font-weight: bold;
+  border: 1px solid darkred;
 }
 
 .contacts-empty {
   text-align: center;
-  padding: 40px 20px;
-  color: var(--text-dim);
+  padding: 20px 10px;
+  color: var(--text-secondary);
+  font-size: 10px;
 }
 
 /* ==================== CHAT WINDOW ==================== */
@@ -378,65 +423,63 @@ input::placeholder, textarea::placeholder {
 }
 
 .chat-header {
-  padding: 16px 20px;
-  border-bottom: 1px solid var(--border-light);
-  background: var(--bg-secondary);
+  padding: 6px 10px;
+  border-bottom: 2px solid var(--border-dark);
+  background: linear-gradient(to right, var(--icq-blue) 0%, var(--icq-blue-dark) 100%);
   display: flex;
   align-items: center;
   justify-content: space-between;
+  color: white;
 }
 
 .chat-contact-info {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
 }
 
 .chat-contact-details h2 {
-  font-size: 16px;
-  font-weight: 600;
-  color: var(--text-primary);
+  font-size: 12px;
+  font-weight: bold;
+  color: white;
   margin-bottom: 2px;
+  text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.5);
 }
 
 .chat-contact-status {
-  font-size: 12px;
-  color: var(--text-secondary);
+  font-size: 10px;
+  color: var(--icq-blue-light);
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
 }
 
 .encryption-indicator {
   display: flex;
   align-items: center;
-  gap: 6px;
-  font-size: 12px;
-  color: var(--status-online);
-  padding: 6px 12px;
-  background: rgba(0, 204, 102, 0.1);
-  border-radius: 12px;
-  font-weight: 500;
+  gap: 4px;
+  font-size: 10px;
+  color: var(--icq-green);
+  padding: 3px 8px;
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  font-weight: bold;
 }
 
 .messages-container {
   flex: 1;
   overflow-y: auto;
-  padding: 20px;
-  background: var(--bg-primary);
+  padding: 12px;
+  background: white;
+  border: 2px inset var(--border-light);
+  margin: 4px;
 }
 
-/* ICQ-style simple message bubbles */
+/* Classic ICQ message style */
 .message {
   display: flex;
-  gap: 10px;
-  margin-bottom: 16px;
-  animation: fadeIn 0.2s ease;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(5px); }
-  to { opacity: 1; transform: translateY(0); }
+  gap: 6px;
+  margin-bottom: 10px;
 }
 
 .message.from-me {
@@ -444,23 +487,23 @@ input::placeholder, textarea::placeholder {
 }
 
 .message-avatar {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
+  width: 20px;
+  height: 20px;
   background: var(--bg-sidebar);
-  border: 1px solid var(--border-light);
+  border: 1px solid var(--border-dark);
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
   color: var(--text-secondary);
+  font-size: 9px;
 }
 
 .message-content {
-  max-width: 60%;
+  max-width: 65%;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 2px;
 }
 
 .message.from-me .message-content {
@@ -468,52 +511,53 @@ input::placeholder, textarea::placeholder {
 }
 
 .message-bubble {
-  padding: 10px 14px;
-  border-radius: 16px;
+  padding: 6px 10px;
+  border-radius: 3px;
   word-wrap: break-word;
   position: relative;
-  box-shadow: var(--shadow-sm);
+  border: 1px solid;
+  font-size: 11px;
+  line-height: 1.4;
 }
 
-/* ICQ-style message bubbles */
+/* Classic ICQ message colors */
 .message.from-me .message-bubble {
-  background: var(--icq-blue);
-  color: white;
-  border-bottom-right-radius: 4px;
+  background: #d0e5f5;
+  color: var(--text-primary);
+  border-color: var(--icq-blue);
 }
 
 .message.from-them .message-bubble {
-  background: var(--bg-secondary);
+  background: #fff9e6;
   color: var(--text-primary);
-  border: 1px solid var(--border-light);
-  border-bottom-left-radius: 4px;
+  border-color: var(--icq-yellow);
 }
 
-/* Lock icon in message bubble */
+/* Small lock icon in classic style */
 .message-bubble::after {
   content: '🔒';
   position: absolute;
-  bottom: 4px;
-  right: 8px;
-  font-size: 10px;
-  opacity: 0.5;
+  bottom: 2px;
+  right: 4px;
+  font-size: 8px;
+  opacity: 0.4;
 }
 
 .message-meta {
   display: flex;
   align-items: center;
-  gap: 6px;
-  font-size: 11px;
-  color: var(--text-dim);
-  padding: 0 4px;
+  gap: 4px;
+  font-size: 9px;
+  color: var(--text-secondary);
+  padding: 0 2px;
 }
 
 .message-time {
-  font-size: 11px;
+  font-size: 9px;
 }
 
 .message-status {
-  font-size: 11px;
+  font-size: 9px;
   color: var(--status-online);
 }
 
@@ -523,54 +567,54 @@ input::placeholder, textarea::placeholder {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  color: var(--text-dim);
-  gap: 16px;
+  color: var(--text-secondary);
+  gap: 12px;
 }
 
 .chat-empty-icon {
-  width: 64px;
-  height: 64px;
+  width: 48px;
+  height: 48px;
   opacity: 0.3;
 }
 
 /* ==================== MESSAGE INPUT ==================== */
 .message-input {
-  padding: 16px 20px;
-  border-top: 1px solid var(--border-light);
-  background: var(--bg-secondary);
+  padding: 8px;
+  border-top: 2px solid var(--border-dark);
+  background: var(--bg-primary);
   display: flex;
-  gap: 12px;
+  gap: 8px;
   align-items: flex-end;
 }
 
 .message-input textarea {
   flex: 1;
-  min-height: 42px;
-  max-height: 120px;
+  min-height: 48px;
+  max-height: 100px;
   resize: none;
-  border-radius: 20px;
-  padding: 10px 16px;
+  padding: 4px 6px;
   line-height: 1.4;
+  font-family: Tahoma, Verdana, Arial, sans-serif;
 }
 
 .send-button {
-  padding: 10px 20px;
-  border-radius: 20px;
+  padding: 4px 16px;
   display: flex;
   align-items: center;
-  gap: 6px;
-  font-weight: 600;
+  gap: 4px;
+  font-weight: bold;
+  min-height: 48px;
 }
 
 /* ==================== UTILITY ==================== */
 .loading-spinner {
   display: inline-block;
-  width: 16px;
-  height: 16px;
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  border-top-color: white;
+  width: 14px;
+  height: 14px;
+  border: 2px solid var(--border-light);
+  border-top-color: var(--icq-blue);
   border-radius: 50%;
-  animation: spin 0.6s linear infinite;
+  animation: spin 0.8s linear infinite;
 }
 
 @keyframes spin {
@@ -584,11 +628,11 @@ input::placeholder, textarea::placeholder {
 /* ==================== RESPONSIVE ==================== */
 @media (max-width: 768px) {
   .contact-list {
-    width: 240px;
+    width: 180px;
   }
 
   .setup-container {
-    padding: 30px;
+    padding: 20px;
   }
 
   .message-content {
