@@ -2,7 +2,7 @@
   "name": "aiseektruth",
   "version": "1.0.0",
   "description": "Decentralized encrypted P2P chat application with Signal Protocol encryption",
-  "main": "dist-electron/main.js",
+  "main": "src/main/main.js",
   "author": "LofiTerminal",
   "license": "GPL-3.0",
   "repository": {

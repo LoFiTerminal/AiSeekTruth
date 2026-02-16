@@ -1,0 +1,10 @@
+{
+  "dependencies": {
+    "electron-rebuild": "^3.2.9"
+  },
+  "_npx": {
+    "packages": [
+      "electron-rebuild"
+    ]
+  }
+}
