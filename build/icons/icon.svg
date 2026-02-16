@@ -1,0 +1,31 @@
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="512" height="512" fill="#000000"/>
+
+  <!-- Terminal window border -->
+  <rect x="40" y="40" width="432" height="432" fill="none" stroke="#00ff41" stroke-width="6" rx="10"/>
+
+  <!-- Inner glow -->
+  <rect x="40" y="40" width="432" height="432" fill="none" stroke="#00ff41" stroke-width="2" rx="10" opacity="0.5" style="filter: blur(10px);"/>
+
+  <!-- AST main text -->
+  <text x="256" y="280" font-family="monospace" font-size="120" font-weight="bold" fill="#00ff41" text-anchor="middle" style="filter: drop-shadow(0 0 20px #00ff41);">AST</text>
+
+  <!-- Encrypted indicator -->
+  <circle cx="256" cy="360" r="25" fill="none" stroke="#00ffff" stroke-width="4"/>
+  <path d="M 246 360 L 256 370 L 276 350" fill="none" stroke="#00ffff" stroke-width="4" stroke-linecap="round"/>
+
+  <!-- Decorative lines -->
+  <line x1="100" y1="140" x2="412" y2="140" stroke="#00ff41" stroke-width="2" opacity="0.3"/>
+  <line x1="100" y1="420" x2="412" y2="420" stroke="#00ff41" stroke-width="2" opacity="0.3"/>
+
+  <!-- Corner brackets -->
+  <!-- Top-left -->
+  <polyline points="60,80 60,60 80,60" fill="none" stroke="#00ff41" stroke-width="3" stroke-linecap="round"/>
+  <!-- Top-right -->
+  <polyline points="452,60 472,60 472,80" fill="none" stroke="#00ff41" stroke-width="3" stroke-linecap="round"/>
+  <!-- Bottom-left -->
+  <polyline points="80,452 60,452 60,432" fill="none" stroke="#00ff41" stroke-width="3" stroke-linecap="round"/>
+  <!-- Bottom-right -->
+  <polyline points="472,432 472,452 452,452" fill="none" stroke="#00ff41" stroke-width="3" stroke-linecap="round"/>
+</svg>
