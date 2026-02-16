@@ -39,6 +39,37 @@ contextBridge.exposeInMainWorld('api', {
   updateStatus: (status) =>
     ipcRenderer.invoke('status:update', status),
 
+  // Group management
+  createGroup: (groupData) =>
+    ipcRenderer.invoke('group:create', groupData),
+
+  getGroups: () =>
+    ipcRenderer.invoke('groups:get'),
+
+  getGroup: (groupId) =>
+    ipcRenderer.invoke('group:get', groupId),
+
+  updateGroup: (groupId, updates) =>
+    ipcRenderer.invoke('group:update', groupId, updates),
+
+  deleteGroup: (groupId) =>
+    ipcRenderer.invoke('group:delete', groupId),
+
+  addGroupMember: (groupId, member) =>
+    ipcRenderer.invoke('group:addMember', groupId, member),
+
+  getGroupMembers: (groupId) =>
+    ipcRenderer.invoke('group:getMembers', groupId),
+
+  removeGroupMember: (groupId, memberPublicKey) =>
+    ipcRenderer.invoke('group:removeMember', groupId, memberPublicKey),
+
+  sendGroupMessage: (groupId, text) =>
+    ipcRenderer.invoke('group:sendMessage', groupId, text),
+
+  getGroupMessages: (groupId, limit = 50, offset = 0) =>
+    ipcRenderer.invoke('group:getMessages', groupId, limit, offset),
+
   // Event listeners
   onNewMessage: (callback) => {
     const subscription = (event, message) => callback(message);
@@ -74,6 +105,12 @@ contextBridge.exposeInMainWorld('api', {
     const subscription = (event, error) => callback(error);
     ipcRenderer.on('error', subscription);
     return () => ipcRenderer.removeListener('error', subscription);
+  },
+
+  onGroupMessage: (callback) => {
+    const subscription = (event, message) => callback(message);
+    ipcRenderer.on('group:message', subscription);
+    return () => ipcRenderer.removeListener('group:message', subscription);
   },
 
   // Remove all listeners for a specific channel

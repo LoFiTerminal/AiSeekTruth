@@ -137,20 +137,143 @@ class MessagingService extends EventEmitter {
   }
 
   /**
+   * Send message to a group (Discord-style)
+   * Encrypts message for each member individually
+   * @param {string} groupId - Group ID
+   * @param {string} text - Message text
+   */
+  async sendGroupMessage(groupId, text) {
+    if (!this.identity) {
+      throw new Error('Messaging service not initialized');
+    }
+
+    // Get group and members
+    const group = storage.getGroup(groupId);
+    if (!group) {
+      throw new Error('Group not found');
+    }
+
+    const members = storage.getGroupMembers(groupId);
+    if (!members || members.length === 0) {
+      throw new Error('No members in group');
+    }
+
+    // Create message
+    const messageId = await crypto.generateMessageId();
+    const timestamp = Date.now();
+
+    // Save to local database first
+    const groupMessage = {
+      id: messageId,
+      groupId,
+      senderPublicKey: this.identity.publicKey,
+      senderUsername: this.identity.username,
+      content: text,
+      timestamp,
+      delivered: false,
+    };
+
+    storage.saveGroupMessage(groupMessage);
+
+    // Encrypt and send to each member (except self)
+    const envelopes = [];
+    for (const member of members) {
+      if (member.publicKey === this.identity.publicKey) {
+        continue; // Skip self
+      }
+
+      try {
+        // Get shared secret with this member
+        const sharedSecret = await this.getSharedSecret(member.publicKey);
+
+        // Encrypt message
+        const { ciphertext, nonce } = await crypto.encryptMessage(text, sharedSecret);
+
+        // Create group message envelope
+        const envelope = {
+          id: messageId,
+          from: this.identity.publicKey,
+          fromUsername: this.identity.username,
+          to: member.publicKey,
+          groupId,
+          groupName: group.name,
+          ciphertext,
+          nonce,
+          timestamp,
+          type: 'group', // Mark as group message
+        };
+
+        // Sign the envelope
+        const envelopeString = JSON.stringify({
+          id: envelope.id,
+          from: envelope.from,
+          to: envelope.to,
+          groupId: envelope.groupId,
+          ciphertext: envelope.ciphertext,
+          nonce: envelope.nonce,
+          timestamp: envelope.timestamp,
+          type: envelope.type,
+        });
+
+        const signature = await crypto.signMessage(envelopeString, this.identity.privateKey);
+        envelope.signature = signature;
+
+        envelopes.push({ member: member.publicKey, envelope });
+      } catch (error) {
+        console.error(`Failed to encrypt for member ${member.username}:`, error);
+      }
+    }
+
+    // Send all envelopes via P2P
+    let successCount = 0;
+    for (const { member, envelope } of envelopes) {
+      try {
+        this.p2p.sendMessageEnvelope(member, envelope);
+        successCount++;
+      } catch (error) {
+        console.error(`Failed to send to ${member}:`, error);
+      }
+    }
+
+    // Update delivery status if at least one succeeded
+    if (successCount > 0) {
+      storage.saveGroupMessage({ ...groupMessage, delivered: true });
+      groupMessage.delivered = true;
+    }
+
+    this.emit('group:message:sent', groupMessage);
+    return groupMessage;
+  }
+
+  /**
    * Handle incoming message envelope
    * @param {Object} envelope - Encrypted message envelope
    */
   async handleIncomingMessage(envelope) {
     try {
+      // Check if it's a group message
+      const isGroupMessage = envelope.type === 'group';
+
       // Verify signature
-      const envelopeString = JSON.stringify({
-        id: envelope.id,
-        from: envelope.from,
-        to: envelope.to,
-        ciphertext: envelope.ciphertext,
-        nonce: envelope.nonce,
-        timestamp: envelope.timestamp,
-      });
+      const envelopeString = isGroupMessage
+        ? JSON.stringify({
+            id: envelope.id,
+            from: envelope.from,
+            to: envelope.to,
+            groupId: envelope.groupId,
+            ciphertext: envelope.ciphertext,
+            nonce: envelope.nonce,
+            timestamp: envelope.timestamp,
+            type: envelope.type,
+          })
+        : JSON.stringify({
+            id: envelope.id,
+            from: envelope.from,
+            to: envelope.to,
+            ciphertext: envelope.ciphertext,
+            nonce: envelope.nonce,
+            timestamp: envelope.timestamp,
+          });
 
       const isValid = await crypto.verifySignature(
         envelopeString,
@@ -196,24 +319,45 @@ class MessagingService extends EventEmitter {
         return;
       }
 
-      // Save to database
-      const message = {
-        id: envelope.id,
-        contactPublicKey: envelope.from,
-        direction: 'received',
-        content: plaintext,
-        timestamp: envelope.timestamp,
-        delivered: true,
-        read: false,
-        signature: envelope.signature,
-      };
+      if (isGroupMessage) {
+        // Handle group message
+        const groupMessage = {
+          id: envelope.id,
+          groupId: envelope.groupId,
+          senderPublicKey: envelope.from,
+          senderUsername: envelope.fromUsername || 'Unknown',
+          content: plaintext,
+          timestamp: envelope.timestamp,
+          delivered: true,
+          signature: envelope.signature,
+        };
 
-      storage.saveMessage(message);
+        storage.saveGroupMessage(groupMessage);
 
-      // Emit event
-      this.emit('message:received', message);
+        // Emit event
+        this.emit('group:message:received', groupMessage);
 
-      console.log('Message received from:', envelope.from);
+        console.log('Group message received from:', envelope.from, 'in group:', envelope.groupName);
+      } else {
+        // Handle direct message
+        const message = {
+          id: envelope.id,
+          contactPublicKey: envelope.from,
+          direction: 'received',
+          content: plaintext,
+          timestamp: envelope.timestamp,
+          delivered: true,
+          read: false,
+          signature: envelope.signature,
+        };
+
+        storage.saveMessage(message);
+
+        // Emit event
+        this.emit('message:received', message);
+
+        console.log('Message received from:', envelope.from);
+      }
     } catch (error) {
       console.error('Error handling incoming message:', error);
       this.emit('error', { type: 'receive_failed', error });

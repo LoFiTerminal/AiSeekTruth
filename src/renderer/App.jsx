@@ -14,6 +14,8 @@ function App() {
     setConnected,
     markMessageDelivered,
     addContact,
+    setGroups,
+    addGroupMessage,
   } = useStore();
 
   useEffect(() => {
@@ -76,6 +78,12 @@ function App() {
         // Could show toast notification here
       });
 
+      // Group message received
+      const unsubscribeGroupMessage = window.api.onGroupMessage((message) => {
+        console.log('New group message received:', message);
+        addGroupMessage(message.groupId, message);
+      });
+
       // Clean up listeners on unmount
       return () => {
         unsubscribeNewMessage();
@@ -84,23 +92,31 @@ function App() {
         unsubscribeMessageDelivered();
         unsubscribeConnectionStatus();
         unsubscribeError();
+        unsubscribeGroupMessage();
       };
     }
   }, []);
 
-  // Load contacts when authenticated
+  // Load contacts and groups when authenticated
   useEffect(() => {
-    const loadContacts = async () => {
+    const loadData = async () => {
       if (currentView === 'chat' && window.api) {
-        const result = await window.api.getContacts();
-        if (result.success) {
-          setContacts(result.contacts);
+        // Load contacts
+        const contactsResult = await window.api.getContacts();
+        if (contactsResult.success) {
+          setContacts(contactsResult.contacts);
+        }
+
+        // Load groups
+        const groupsResult = await window.api.getGroups();
+        if (groupsResult.success) {
+          setGroups(groupsResult.groups);
         }
       }
     };
 
-    loadContacts();
-  }, [currentView, setContacts]);
+    loadData();
+  }, [currentView, setContacts, setGroups]);
 
   if (currentView === 'setup') {
     return <SetupWizard />;

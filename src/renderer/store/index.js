@@ -11,6 +11,12 @@ const useStore = create((set, get) => ({
   currentView: 'setup', // 'setup' | 'chat'
   showAddContact: false,
 
+  // Groups
+  groups: [],
+  activeGroup: null,
+  groupMessages: {}, // { [groupId]: [...messages] }
+  showCreateGroup: false,
+
   // Actions
   setIdentity: (identity) => {
     set({
@@ -154,6 +160,57 @@ const useStore = create((set, get) => ({
         },
       };
     });
+  },
+
+  // Group Actions
+  setGroups: (groups) => {
+    set({ groups });
+  },
+
+  addGroup: (group) => {
+    set((state) => ({
+      groups: [...state.groups, group],
+    }));
+  },
+
+  setActiveGroup: async (group) => {
+    set({ activeGroup: group, activeContact: null });
+
+    // Load messages for this group
+    if (group && window.api) {
+      try {
+        const result = await window.api.getGroupMessages(group.id, 50, 0);
+        if (result.success) {
+          const messages = result.messages.reverse();
+          set((state) => ({
+            groupMessages: {
+              ...state.groupMessages,
+              [group.id]: messages,
+            },
+          }));
+        }
+      } catch (error) {
+        console.error('Failed to load group messages:', error);
+      }
+    }
+  },
+
+  addGroupMessage: (groupId, message) => {
+    set((state) => {
+      const currentMessages = state.groupMessages[groupId] || [];
+      return {
+        groupMessages: {
+          ...state.groupMessages,
+          [groupId]: [...currentMessages, message],
+        },
+      };
+    });
+  },
+
+  toggleCreateGroup: () => {
+    set((state) => ({
+      showCreateGroup: !state.showCreateGroup,
+    }));
   },
 }));
 

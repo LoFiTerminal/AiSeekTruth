@@ -81,12 +81,51 @@ function initializeDatabase() {
       timestamp INTEGER NOT NULL
     );
 
+    -- Groups table (Discord-style group chats)
+    CREATE TABLE IF NOT EXISTS groups (
+      id TEXT PRIMARY KEY,
+      name TEXT NOT NULL,
+      description TEXT,
+      avatar TEXT,
+      creator_public_key TEXT NOT NULL,
+      created_at INTEGER NOT NULL,
+      updated_at INTEGER NOT NULL
+    );
+
+    -- Group members table
+    CREATE TABLE IF NOT EXISTS group_members (
+      group_id TEXT NOT NULL,
+      member_public_key TEXT NOT NULL,
+      member_username TEXT NOT NULL,
+      role TEXT DEFAULT 'member' CHECK (role IN ('admin', 'member')),
+      joined_at INTEGER NOT NULL,
+      PRIMARY KEY (group_id, member_public_key),
+      FOREIGN KEY (group_id) REFERENCES groups(id) ON DELETE CASCADE
+    );
+
+    -- Group messages table
+    CREATE TABLE IF NOT EXISTS group_messages (
+      id TEXT PRIMARY KEY,
+      group_id TEXT NOT NULL,
+      sender_public_key TEXT NOT NULL,
+      sender_username TEXT NOT NULL,
+      content TEXT NOT NULL,
+      timestamp INTEGER NOT NULL,
+      delivered INTEGER DEFAULT 0,
+      signature TEXT,
+      FOREIGN KEY (group_id) REFERENCES groups(id) ON DELETE CASCADE
+    );
+
     -- Create indexes for performance
     CREATE INDEX IF NOT EXISTS idx_messages_contact ON messages(contact_public_key);
     CREATE INDEX IF NOT EXISTS idx_messages_timestamp ON messages(timestamp DESC);
     CREATE INDEX IF NOT EXISTS idx_messages_contact_timestamp ON messages(contact_public_key, timestamp DESC);
     CREATE INDEX IF NOT EXISTS idx_karma_points ON karma(points DESC);
     CREATE INDEX IF NOT EXISTS idx_karma_history_to ON karma_history(to_public_key);
+    CREATE INDEX IF NOT EXISTS idx_group_messages_group ON group_messages(group_id);
+    CREATE INDEX IF NOT EXISTS idx_group_messages_timestamp ON group_messages(timestamp DESC);
+    CREATE INDEX IF NOT EXISTS idx_group_messages_group_timestamp ON group_messages(group_id, timestamp DESC);
+    CREATE INDEX IF NOT EXISTS idx_group_members_group ON group_members(group_id);
   `);
 
   return db;
@@ -476,6 +515,234 @@ function getKarmaLeaderboard(limit = 10) {
   }));
 }
 
+// ==================== GROUP OPERATIONS ====================
+
+/**
+ * Create a new group
+ */
+function createGroup(group) {
+  const db = getDatabase();
+  const now = Date.now();
+
+  const stmt = db.prepare(`
+    INSERT INTO groups (id, name, description, avatar, creator_public_key, created_at, updated_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?)
+  `);
+
+  stmt.run(
+    group.id,
+    group.name,
+    group.description || null,
+    group.avatar || null,
+    group.creatorPublicKey,
+    now,
+    now
+  );
+
+  // Add creator as admin
+  addGroupMember(group.id, {
+    publicKey: group.creatorPublicKey,
+    username: group.creatorUsername,
+    role: 'admin'
+  });
+
+  return { ...group, createdAt: now, updatedAt: now };
+}
+
+/**
+ * Get all groups
+ */
+function getGroups() {
+  const db = getDatabase();
+
+  const stmt = db.prepare(`
+    SELECT id, name, description, avatar, creator_public_key, created_at, updated_at
+    FROM groups
+    ORDER BY updated_at DESC
+  `);
+
+  const rows = stmt.all();
+
+  return rows.map(row => ({
+    id: row.id,
+    name: row.name,
+    description: row.description,
+    avatar: row.avatar,
+    creatorPublicKey: row.creator_public_key,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  }));
+}
+
+/**
+ * Get a specific group
+ */
+function getGroup(groupId) {
+  const db = getDatabase();
+
+  const stmt = db.prepare(`
+    SELECT id, name, description, avatar, creator_public_key, created_at, updated_at
+    FROM groups
+    WHERE id = ?
+  `);
+
+  const row = stmt.get(groupId);
+  if (!row) return null;
+
+  return {
+    id: row.id,
+    name: row.name,
+    description: row.description,
+    avatar: row.avatar,
+    creatorPublicKey: row.creator_public_key,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  };
+}
+
+/**
+ * Update group details
+ */
+function updateGroup(groupId, updates) {
+  const db = getDatabase();
+  const now = Date.now();
+
+  const stmt = db.prepare(`
+    UPDATE groups
+    SET name = COALESCE(?, name),
+        description = COALESCE(?, description),
+        avatar = COALESCE(?, avatar),
+        updated_at = ?
+    WHERE id = ?
+  `);
+
+  return stmt.run(
+    updates.name || null,
+    updates.description || null,
+    updates.avatar || null,
+    now,
+    groupId
+  );
+}
+
+/**
+ * Delete a group
+ */
+function deleteGroup(groupId) {
+  const db = getDatabase();
+  const stmt = db.prepare('DELETE FROM groups WHERE id = ?');
+  return stmt.run(groupId);
+}
+
+/**
+ * Add member to group
+ */
+function addGroupMember(groupId, member) {
+  const db = getDatabase();
+  const now = Date.now();
+
+  const stmt = db.prepare(`
+    INSERT INTO group_members (group_id, member_public_key, member_username, role, joined_at)
+    VALUES (?, ?, ?, ?, ?)
+  `);
+
+  return stmt.run(
+    groupId,
+    member.publicKey,
+    member.username,
+    member.role || 'member',
+    now
+  );
+}
+
+/**
+ * Get all members of a group
+ */
+function getGroupMembers(groupId) {
+  const db = getDatabase();
+
+  const stmt = db.prepare(`
+    SELECT member_public_key, member_username, role, joined_at
+    FROM group_members
+    WHERE group_id = ?
+    ORDER BY joined_at ASC
+  `);
+
+  const rows = stmt.all(groupId);
+
+  return rows.map(row => ({
+    publicKey: row.member_public_key,
+    username: row.member_username,
+    role: row.role,
+    joinedAt: row.joined_at,
+  }));
+}
+
+/**
+ * Remove member from group
+ */
+function removeGroupMember(groupId, memberPublicKey) {
+  const db = getDatabase();
+
+  const stmt = db.prepare(`
+    DELETE FROM group_members
+    WHERE group_id = ? AND member_public_key = ?
+  `);
+
+  return stmt.run(groupId, memberPublicKey);
+}
+
+/**
+ * Save group message
+ */
+function saveGroupMessage(message) {
+  const db = getDatabase();
+
+  const stmt = db.prepare(`
+    INSERT INTO group_messages (id, group_id, sender_public_key, sender_username, content, timestamp, delivered, signature)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+  `);
+
+  return stmt.run(
+    message.id,
+    message.groupId,
+    message.senderPublicKey,
+    message.senderUsername,
+    message.content,
+    message.timestamp,
+    message.delivered ? 1 : 0,
+    message.signature || null
+  );
+}
+
+/**
+ * Get messages for a group
+ */
+function getGroupMessages(groupId, limit = 50, offset = 0) {
+  const db = getDatabase();
+
+  const stmt = db.prepare(`
+    SELECT id, group_id, sender_public_key, sender_username, content, timestamp, delivered, signature
+    FROM group_messages
+    WHERE group_id = ?
+    ORDER BY timestamp DESC
+    LIMIT ? OFFSET ?
+  `);
+
+  const rows = stmt.all(groupId, limit, offset);
+
+  return rows.map(row => ({
+    id: row.id,
+    groupId: row.group_id,
+    senderPublicKey: row.sender_public_key,
+    senderUsername: row.sender_username,
+    content: row.content,
+    timestamp: row.timestamp,
+    delivered: row.delivered === 1,
+    signature: row.signature,
+  }));
+}
+
 /**
  * Close database connection
  */
@@ -511,4 +778,15 @@ module.exports = {
   getKarma,
   updateKarmaRank,
   getKarmaLeaderboard,
+  // Groups
+  createGroup,
+  getGroups,
+  getGroup,
+  updateGroup,
+  deleteGroup,
+  addGroupMember,
+  getGroupMembers,
+  removeGroupMember,
+  saveGroupMessage,
+  getGroupMessages,
 };

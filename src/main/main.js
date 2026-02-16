@@ -205,6 +205,112 @@ ipcMain.handle('status:update', async (event, status) => {
   }
 });
 
+// ==================== GROUP OPERATIONS ====================
+
+ipcMain.handle('group:create', async (event, groupData) => {
+  try {
+    const group = storage.createGroup(groupData);
+    return { success: true, group };
+  } catch (error) {
+    console.error('Error creating group:', error);
+    return { success: false, error: error.message };
+  }
+});
+
+ipcMain.handle('groups:get', async () => {
+  try {
+    const groups = storage.getGroups();
+    return { success: true, groups };
+  } catch (error) {
+    console.error('Error getting groups:', error);
+    return { success: false, error: error.message };
+  }
+});
+
+ipcMain.handle('group:get', async (event, groupId) => {
+  try {
+    const group = storage.getGroup(groupId);
+    return { success: true, group };
+  } catch (error) {
+    console.error('Error getting group:', error);
+    return { success: false, error: error.message };
+  }
+});
+
+ipcMain.handle('group:update', async (event, groupId, updates) => {
+  try {
+    storage.updateGroup(groupId, updates);
+    return { success: true };
+  } catch (error) {
+    console.error('Error updating group:', error);
+    return { success: false, error: error.message };
+  }
+});
+
+ipcMain.handle('group:delete', async (event, groupId) => {
+  try {
+    storage.deleteGroup(groupId);
+    return { success: true };
+  } catch (error) {
+    console.error('Error deleting group:', error);
+    return { success: false, error: error.message };
+  }
+});
+
+ipcMain.handle('group:addMember', async (event, groupId, member) => {
+  try {
+    storage.addGroupMember(groupId, member);
+    return { success: true };
+  } catch (error) {
+    console.error('Error adding group member:', error);
+    return { success: false, error: error.message };
+  }
+});
+
+ipcMain.handle('group:getMembers', async (event, groupId) => {
+  try {
+    const members = storage.getGroupMembers(groupId);
+    return { success: true, members };
+  } catch (error) {
+    console.error('Error getting group members:', error);
+    return { success: false, error: error.message };
+  }
+});
+
+ipcMain.handle('group:removeMember', async (event, groupId, memberPublicKey) => {
+  try {
+    storage.removeGroupMember(groupId, memberPublicKey);
+    return { success: true };
+  } catch (error) {
+    console.error('Error removing group member:', error);
+    return { success: false, error: error.message };
+  }
+});
+
+ipcMain.handle('group:sendMessage', async (event, groupId, text) => {
+  try {
+    if (!messaging) {
+      return { success: false, error: 'Not initialized' };
+    }
+
+    const message = await messaging.sendGroupMessage(groupId, text);
+    return { success: true, message };
+  } catch (error) {
+    console.error('Error sending group message:', error);
+    return { success: false, error: error.message };
+  }
+});
+
+ipcMain.handle('group:getMessages', async (event, groupId, limit, offset) => {
+  try {
+    const messages = storage.getGroupMessages(groupId, limit, offset);
+    return { success: true, messages };
+  } catch (error) {
+    console.error('Error getting group messages:', error);
+    return { success: false, error: error.message };
+  }
+});
+
 // ==================== SERVICE INITIALIZATION ====================
 
 function initializeServices(identity) {
@@ -223,6 +329,12 @@ function initializeServices(identity) {
   messaging.on('message:received', (message) => {
     if (mainWindow) {
       mainWindow.webContents.send('message:new', message);
+    }
+  });
+
+  messaging.on('group:message:received', (message) => {
+    if (mainWindow) {
+      mainWindow.webContents.send('group:message', message);
     }
   });
 
