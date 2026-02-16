@@ -1,5 +1,6 @@
 /* ==================== RETRO ICQ DESIGN (1999-2003) ==================== */
 /* Authentic ICQ messenger aesthetic from the golden era */
+/* Updated: Clean header + Golden lock icon */
 
 :root {
   /* Classic ICQ colors */
@@ -167,36 +168,50 @@ input::placeholder, textarea::placeholder {
 }
 
 .setup-header {
-  background: linear-gradient(to right, var(--icq-blue) 0%, var(--icq-blue-dark) 100%);
-  padding: 4px 8px;
-  color: white;
-  font-weight: bold;
-  font-size: 11px;
+  text-align: center;
+  padding: 16px;
+  background: white;
+  border-bottom: 2px groove var(--border-light);
   margin-bottom: 12px;
-  border: 1px solid var(--icq-blue-dark);
+}
+
+.setup-icon-wrapper {
+  position: relative;
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .setup-icon {
-  width: 48px;
-  height: 48px;
+  width: 64px;
+  height: 64px;
+  color: var(--icq-blue);
+  filter: drop-shadow(2px 2px 3px rgba(0, 0, 0, 0.2));
+}
+
+.setup-lock-icon {
+  position: absolute;
+  width: 24px;
+  height: 24px;
   color: var(--icq-green);
-  margin: 12px auto;
-  filter: drop-shadow(2px 2px 2px rgba(0, 0, 0, 0.3));
+  filter: drop-shadow(1px 1px 2px rgba(0, 0, 0, 0.3));
 }
 
 .setup-title {
-  font-size: 16px;
+  font-size: 18px;
   font-weight: bold;
   color: var(--text-primary);
   text-align: center;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
 }
 
 .setup-subtitle {
   font-size: 11px;
   color: var(--text-secondary);
   text-align: center;
-  margin-bottom: 16px;
 }
 
 .setup-form {

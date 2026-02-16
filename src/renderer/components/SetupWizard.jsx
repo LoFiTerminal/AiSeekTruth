@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { MessageCircle } from 'lucide-react';
+import { MessageCircle, Lock } from 'lucide-react';
 import useStore from '../store';
 
 function SetupWizard() {
@@ -114,7 +114,10 @@ function SetupWizard() {
     <div className="setup-wizard">
       <div className="setup-container">
         <div className="setup-header">
-          <MessageCircle className="setup-icon" size={60} />
+          <div className="setup-icon-wrapper">
+            <MessageCircle className="setup-icon" size={60} />
+            <Lock className="setup-lock-icon" size={24} />
+          </div>
           <h1 className="setup-title">
             {mode === 'create' ? 'Welcome to AiSeekTruth' : 'Welcome Back'}
           </h1>
