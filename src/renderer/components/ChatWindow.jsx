@@ -1,16 +1,19 @@
 import { useEffect, useRef } from 'react';
-import { MessageCircle, Lock, User } from 'lucide-react';
+import { MessageCircle, Lock, User, Hash, Users } from 'lucide-react';
 import useStore from '../store';
 import MessageInput from './MessageInput';
 
 function ChatWindow() {
-  const { activeContact, messages, identity } = useStore();
+  const { activeContact, activeGroup, messages, groupMessages, identity } = useStore();
   const messagesEndRef = useRef(null);
   const messagesContainerRef = useRef(null);
 
-  const activeMessages = activeContact
-    ? messages[activeContact.publicKey] || []
-    : [];
+  const isGroupChat = !!activeGroup;
+  const activeChat = isGroupChat ? activeGroup : activeContact;
+
+  const activeMessages = isGroupChat
+    ? (groupMessages[activeGroup?.id] || [])
+    : (activeContact ? (messages[activeContact.publicKey] || []) : []);
 
   // Auto-scroll to bottom on new messages
   useEffect(() => {
@@ -40,12 +43,12 @@ function ChatWindow() {
     });
   };
 
-  if (!activeContact) {
+  if (!activeChat) {
     return (
       <div className="chat-window">
         <div className="chat-empty">
           <MessageCircle className="chat-empty-icon" size={80} />
-          <p>Select a contact to start chatting</p>
+          <p>Select a contact or group to start chatting</p>
         </div>
       </div>
     );
@@ -57,20 +60,31 @@ function ChatWindow() {
       <div className="chat-header">
         <div className="chat-contact-info">
           <div className="contact-avatar">
-            <User size={24} />
+            {isGroupChat ? <Hash size={20} /> : <User size={20} />}
           </div>
           <div className="chat-contact-details">
-            <h2>{activeContact.nickname || activeContact.username}</h2>
-            <div className="chat-contact-status">
-              <span className={`status-dot ${activeContact.status || 'offline'}`}></span>
-              {activeContact.status === 'online' ? 'Online' : 'Offline'}
-            </div>
+            <h2>
+              {isGroupChat
+                ? activeGroup.name
+                : (activeContact.nickname || activeContact.username)}
+            </h2>
+            {!isGroupChat && (
+              <div className="chat-contact-status">
+                <span className={`status-dot ${activeContact.status || 'offline'}`}></span>
+                {activeContact.status === 'online' ? 'Online' : 'Offline'}
+              </div>
+            )}
+            {isGroupChat && activeGroup.description && (
+              <div className="chat-contact-status">
+                {activeGroup.description}
+              </div>
+            )}
           </div>
         </div>
 
         <div className="encryption-indicator">
-          <Lock size={14} />
-          End-to-End Encrypted
+          <Lock size={12} />
+          E2E
         </div>
       </div>
 
@@ -83,7 +97,13 @@ function ChatWindow() {
           </div>
         ) : (
           activeMessages.map((message) => {
-            const isFromMe = message.direction === 'sent';
+            const isFromMe = isGroupChat
+              ? message.senderPublicKey === identity?.publicKey
+              : message.direction === 'sent';
+
+            const senderName = isGroupChat && !isFromMe
+              ? message.senderUsername
+              : null;
 
             return (
               <div
@@ -91,10 +111,20 @@ function ChatWindow() {
                 className={`message ${isFromMe ? 'from-me' : 'from-them'}`}
               >
                 <div className="message-avatar">
-                  <User size={16} />
+                  <User size={14} />
                 </div>
 
                 <div className="message-content">
+                  {senderName && (
+                    <div style={{
+                      fontSize: '10px',
+                      fontWeight: 'bold',
+                      color: 'var(--icq-blue)',
+                      marginBottom: '2px'
+                    }}>
+                      {senderName}
+                    </div>
+                  )}
                   <div className="message-bubble">{message.content}</div>
 
                   <div className="message-meta">
@@ -102,7 +132,7 @@ function ChatWindow() {
                       {formatTimestamp(message.timestamp)}
                     </span>
 
-                    {isFromMe && (
+                    {isFromMe && !isGroupChat && (
                       <span className="message-status">
                         {message.delivered ? '✓✓' : '✓'}
                       </span>

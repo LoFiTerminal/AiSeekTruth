@@ -3,15 +3,18 @@ import { Send } from 'lucide-react';
 import useStore from '../store';
 
 function MessageInput() {
-  const { activeContact, identity, addMessage } = useStore();
+  const { activeContact, activeGroup, identity, addMessage, addGroupMessage } = useStore();
   const [text, setText] = useState('');
   const [isSending, setIsSending] = useState(false);
   const textareaRef = useRef(null);
 
+  const isGroupChat = !!activeGroup;
+  const activeChat = isGroupChat ? activeGroup : activeContact;
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!text.trim() || !activeContact || isSending) {
+    if (!text.trim() || !activeChat || isSending) {
       return;
     }
 
@@ -26,31 +29,56 @@ function MessageInput() {
     setIsSending(true);
 
     try {
-      // Optimistic update - add message to UI immediately
-      const optimisticMessage = {
-        id: `temp-${Date.now()}`,
-        contactPublicKey: activeContact.publicKey,
-        direction: 'sent',
-        content: messageText,
-        timestamp: Date.now(),
-        delivered: false,
-        read: false,
-      };
+      if (isGroupChat) {
+        // Send group message
+        const optimisticMessage = {
+          id: `temp-${Date.now()}`,
+          groupId: activeGroup.id,
+          senderPublicKey: identity.publicKey,
+          senderUsername: identity.username,
+          content: messageText,
+          timestamp: Date.now(),
+          delivered: false,
+        };
 
-      addMessage(activeContact.publicKey, optimisticMessage);
+        addGroupMessage(activeGroup.id, optimisticMessage);
 
-      // Send message via API
-      const result = await window.api.sendMessage(
-        activeContact.publicKey,
-        messageText
-      );
+        const result = await window.api.sendGroupMessage(
+          activeGroup.id,
+          messageText
+        );
 
-      if (result.success) {
-        // Replace optimistic message with actual message
-        addMessage(activeContact.publicKey, result.message);
+        if (result.success) {
+          // Replace optimistic message with actual message
+          addGroupMessage(activeGroup.id, result.message);
+        } else {
+          console.error('Failed to send group message:', result.error);
+        }
       } else {
-        console.error('Failed to send message:', result.error);
-        // Could implement retry logic or error notification here
+        // Send direct message
+        const optimisticMessage = {
+          id: `temp-${Date.now()}`,
+          contactPublicKey: activeContact.publicKey,
+          direction: 'sent',
+          content: messageText,
+          timestamp: Date.now(),
+          delivered: false,
+          read: false,
+        };
+
+        addMessage(activeContact.publicKey, optimisticMessage);
+
+        const result = await window.api.sendMessage(
+          activeContact.publicKey,
+          messageText
+        );
+
+        if (result.success) {
+          // Replace optimistic message with actual message
+          addMessage(activeContact.publicKey, result.message);
+        } else {
+          console.error('Failed to send message:', result.error);
+        }
       }
     } catch (error) {
       console.error('Error sending message:', error);
@@ -80,6 +108,12 @@ function MessageInput() {
     }
   };
 
+  const placeholderText = isGroupChat
+    ? `Message #${activeGroup?.name || 'group'}`
+    : activeContact
+    ? `Message ${activeContact.nickname || activeContact.username}`
+    : 'Select a chat to start messaging';
+
   return (
     <form className="message-input" onSubmit={handleSubmit}>
       <textarea
@@ -87,19 +121,15 @@ function MessageInput() {
         value={text}
         onChange={handleChange}
         onKeyDown={handleKeyDown}
-        placeholder={
-          activeContact
-            ? 'Type a message... (Enter to send, Shift+Enter for new line)'
-            : 'Select a contact to start messaging'
-        }
-        disabled={!activeContact || isSending}
+        placeholder={placeholderText}
+        disabled={!activeChat || isSending}
         rows={1}
       />
 
       <button
         type="submit"
         className="send-button"
-        disabled={!activeContact || !text.trim() || isSending}
+        disabled={!activeChat || !text.trim() || isSending}
       >
         {isSending ? (
           <span className="loading-spinner"></span>

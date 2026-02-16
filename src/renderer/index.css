@@ -428,6 +428,18 @@ input::placeholder, textarea::placeholder {
   font-size: 10px;
 }
 
+.contact-section {
+  margin-bottom: 12px;
+}
+
+.contact-section-header {
+  font-size: 9px;
+  font-weight: bold;
+  color: var(--text-secondary);
+  padding: 8px 12px 4px;
+  letter-spacing: 0.5px;
+}
+
 /* ==================== CHAT WINDOW ==================== */
 .chat-window {
   flex: 1;
