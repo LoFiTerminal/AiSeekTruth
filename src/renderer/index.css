@@ -1,18 +1,19 @@
-/* ==================== CSS VARIABLES ==================== */
+/* ==================== CSS VARIABLES (ICQ-inspired) ==================== */
 :root {
-  --neon-green: #00ff41;
-  --neon-cyan: #00ffff;
-  --neon-pink: #ff006e;
-  --neon-purple: #b537f2;
-  --dark-bg: #0a0a0a;
-  --darker-bg: #000000;
-  --border-color: #00ff4133;
-  --text-primary: #00ff41;
-  --text-secondary: #00ff4199;
-  --text-dim: #00ff4166;
-  --error-color: #ff006e;
-  --success-color: #00ff41;
-  --warning-color: #ffaa00;
+  --icq-blue: #3b7dd6;
+  --icq-light-blue: #5c9ce6;
+  --icq-green: #00cc66;
+  --icq-orange: #ff9900;
+  --icq-red: #ff3366;
+  --bg-primary: #f5f7fa;
+  --bg-secondary: #ffffff;
+  --bg-sidebar: #e8ecf0;
+  --border-color: #d0d7de;
+  --text-primary: #1f2937;
+  --text-secondary: #6b7280;
+  --text-dim: #9ca3af;
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 /* ==================== RESET & BASE ==================== */
