@@ -3,694 +3,827 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="AST [AiSeekTruth] - Military-grade encrypted P2P communication. Decentralized. Unstoppable. Zero backdoors. Own your data.">
-  <meta name="keywords" content="encrypted chat, P2P, decentralized, Signal Protocol, privacy, secure messaging, end-to-end encryption">
-  <meta name="author" content="LofiTerminal">
-
-  <title>AST [AiSeekTruth] - Encrypted. Decentralized. Unstoppable.</title>
-
-  <link rel="icon" type="image/svg+xml" href="ast-favicon.svg">
-
-  <!-- Google Fonts -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=VT323&display=swap" rel="stylesheet">
-
+  <title>AiSeekTruth - Decentralized Encrypted Messaging</title>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
   <style>
-    /* ==================== VARIABLES ==================== */
-    :root {
-      --neon-green: #00ff41;
-      --neon-cyan: #00ffff;
-      --neon-pink: #ff006e;
-      --neon-purple: #b537f2;
-      --dark-bg: #0a0a0a;
-      --darker-bg: #000000;
-      --border-color: rgba(0, 255, 65, 0.3);
-    }
-
-    /* ==================== RESET ==================== */
     * {
       margin: 0;
       padding: 0;
       box-sizing: border-box;
     }
 
-    html {
-      scroll-behavior: smooth;
+    :root {
+      --bg-primary: #0a0e1a;
+      --bg-secondary: #151a2d;
+      --bg-tertiary: #1e2538;
+      --border: #2a3244;
+      --text-primary: #e4e8f0;
+      --text-secondary: #8892a6;
+      --accent: #4a90e2;
+      --accent-dim: #2d5a8f;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --code-bg: #0d1117;
     }
 
     body {
-      font-family: 'Share Tech Mono', monospace;
-      background: var(--darker-bg);
-      color: var(--neon-green);
-      overflow-x: hidden;
-      cursor: crosshair;
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      line-height: 1.6;
+    }
+
+    /* Header */
+    header {
+      background: var(--bg-secondary);
+      border-bottom: 1px solid var(--border);
+      padding: 1rem 2rem;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    nav {
+      max-width: 1400px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .logo {
+      font-size: 1.2rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .logo-icon {
+      width: 32px;
+      height: 32px;
+      background: var(--bg-tertiary);
+      border: 2px solid var(--accent);
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       position: relative;
     }
 
-    /* Scanline effect */
-    body::before {
-      content: '';
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: repeating-linear-gradient(
-        0deg,
-        rgba(0, 0, 0, 0.15),
-        rgba(0, 0, 0, 0.15) 1px,
-        transparent 1px,
-        transparent 2px
-      );
-      pointer-events: none;
-      z-index: 9999;
-      animation: scanline 8s linear infinite;
+    .logo-icon svg {
+      width: 20px;
+      height: 20px;
     }
 
-    @keyframes scanline {
-      0% { transform: translateY(0); }
-      100% { transform: translateY(10px); }
+    .logo-shield {
+      fill: none;
+      stroke: var(--accent);
+      stroke-width: 2;
     }
 
-    /* ==================== MATRIX BACKGROUND ==================== */
-    #matrix-bg {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      z-index: 0;
-      opacity: 0.15;
-    }
-
-    /* ==================== NAVIGATION ==================== */
-    nav {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      padding: 20px 50px;
-      background: rgba(0, 0, 0, 0.9);
-      backdrop-filter: blur(10px);
-      border-bottom: 2px solid var(--border-color);
-      box-shadow: 0 0 20px var(--neon-green);
-      z-index: 1000;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-
-    .nav-logo {
-      font-family: 'VT323', monospace;
-      font-size: 28px;
-      letter-spacing: 3px;
-      text-shadow: 0 0 15px var(--neon-green);
-      animation: glow-pulse 2s ease infinite;
+    .logo-lock {
+      fill: var(--success);
     }
 
     .nav-links {
       display: flex;
-      gap: 30px;
+      gap: 2rem;
       list-style: none;
     }
 
     .nav-links a {
-      color: var(--neon-green);
+      color: var(--text-secondary);
       text-decoration: none;
-      text-transform: uppercase;
-      font-size: 14px;
-      letter-spacing: 2px;
-      transition: all 0.3s;
-      position: relative;
-    }
-
-    .nav-links a::before {
-      content: '>';
-      position: absolute;
-      left: -15px;
-      opacity: 0;
-      transition: all 0.3s;
+      font-size: 0.9rem;
+      transition: color 0.2s;
     }
 
     .nav-links a:hover {
-      text-shadow: 0 0 10px var(--neon-green);
+      color: var(--text-primary);
     }
 
-    .nav-links a:hover::before {
-      opacity: 1;
-      left: -20px;
-    }
-
-    .nav-btn {
-      padding: 10px 25px;
-      background: transparent;
-      color: var(--neon-green);
-      border: 2px solid var(--neon-green);
-      cursor: crosshair;
-      text-transform: uppercase;
-      letter-spacing: 2px;
-      font-family: 'Share Tech Mono', monospace;
-      font-size: 14px;
-      transition: all 0.3s;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .nav-btn::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: -100%;
-      width: 100%;
-      height: 100%;
-      background: var(--neon-green);
-      transition: left 0.3s;
-      z-index: -1;
-    }
-
-    .nav-btn:hover::before {
-      left: 0;
-    }
-
-    .nav-btn:hover {
-      color: var(--darker-bg);
-      box-shadow: 0 0 30px var(--neon-green);
-    }
-
-    /* ==================== ANIMATIONS ==================== */
-    @keyframes glow-pulse {
-      0%, 100% { text-shadow: 0 0 10px var(--neon-green); }
-      50% { text-shadow: 0 0 20px var(--neon-green), 0 0 30px var(--neon-green); }
-    }
-
-    @keyframes float {
-      0%, 100% { transform: translateY(0); }
-      50% { transform: translateY(-20px); }
-    }
-
-    @keyframes blink {
-      0%, 50% { opacity: 1; }
-      51%, 100% { opacity: 0; }
-    }
-
-    @keyframes slide-in {
-      from { opacity: 0; transform: translateY(30px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    /* ==================== SECTIONS ==================== */
-    section {
-      position: relative;
-      z-index: 1;
-      padding: 100px 50px;
+    /* Hero */
+    .hero {
       max-width: 1400px;
       margin: 0 auto;
+      padding: 4rem 2rem 2rem;
     }
 
-    /* ==================== HERO SECTION ==================== */
-    .hero {
-      min-height: 100vh;
+    .hero-header {
+      margin-bottom: 3rem;
+    }
+
+    .hero-header h1 {
+      font-size: 2.5rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+      color: var(--text-primary);
+    }
+
+    .hero-header p {
+      font-size: 1.1rem;
+      color: var(--text-secondary);
+      max-width: 800px;
+    }
+
+    .tech-badges {
+      display: flex;
+      gap: 1rem;
+      margin-top: 1.5rem;
+      flex-wrap: wrap;
+    }
+
+    .badge {
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border);
+      padding: 0.5rem 1rem;
+      border-radius: 4px;
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      font-family: 'Courier New', monospace;
+    }
+
+    /* App Screenshot */
+    .app-container {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+      margin-bottom: 4rem;
+    }
+
+    .app-titlebar {
+      background: var(--bg-tertiary);
+      padding: 0.75rem 1rem;
+      border-bottom: 1px solid var(--border);
       display: flex;
       align-items: center;
-      justify-content: center;
-      padding-top: 150px;
+      gap: 0.5rem;
     }
 
-    .terminal-window {
-      width: 100%;
-      max-width: 900px;
-      background: rgba(0, 0, 0, 0.95);
-      border: 2px solid var(--neon-green);
-      box-shadow: 0 0 50px var(--neon-green);
-      animation: slide-in 1s ease;
-    }
-
-    .terminal-header {
-      padding: 15px 20px;
-      background: rgba(0, 255, 65, 0.1);
-      border-bottom: 2px solid var(--border-color);
+    .titlebar-dots {
       display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-
-    .terminal-dots {
-      display: flex;
-      gap: 8px;
+      gap: 0.5rem;
     }
 
     .dot {
       width: 12px;
       height: 12px;
       border-radius: 50%;
-      border: 2px solid var(--neon-green);
-      background: transparent;
+      background: var(--border);
     }
 
-    .dot:nth-child(1) { border-color: var(--neon-pink); }
-    .dot:nth-child(2) { border-color: var(--neon-cyan); }
-    .dot:nth-child(3) { border-color: var(--neon-green); }
-
-    .terminal-title {
-      font-size: 14px;
-      letter-spacing: 2px;
+    .titlebar-text {
+      margin-left: 1rem;
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      font-family: 'Courier New', monospace;
     }
 
-    .terminal-body {
-      padding: 30px;
-      font-family: 'Share Tech Mono', monospace;
-      font-size: 14px;
-      line-height: 1.8;
+    .app-content {
+      display: flex;
+      height: 600px;
     }
 
-    .command {
-      color: var(--neon-cyan);
-      margin-bottom: 10px;
+    .app-sidebar {
+      width: 260px;
+      background: var(--bg-primary);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
     }
 
-    .command::before {
-      content: '$ ';
-      color: var(--neon-green);
+    .sidebar-header {
+      padding: 1rem;
+      border-bottom: 1px solid var(--border);
     }
 
-    .output {
-      color: var(--neon-green);
-      margin-bottom: 20px;
-      padding-left: 15px;
+    .user-profile {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.75rem;
+      background: var(--bg-tertiary);
+      border-radius: 4px;
     }
 
-    .ascii-logo {
-      font-family: 'VT323', monospace;
-      font-size: 18px;
-      line-height: 1.2;
-      color: var(--neon-green);
-      text-shadow: 0 0 15px var(--neon-green);
-      margin: 30px 0;
-      white-space: pre;
+    .user-avatar {
+      width: 36px;
+      height: 36px;
+      background: var(--accent-dim);
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.9rem;
+      font-family: 'Courier New', monospace;
     }
 
-    .manifesto {
-      color: var(--neon-cyan);
-      font-size: 16px;
-      line-height: 1.8;
-      margin: 30px 0;
-      text-shadow: 0 0 8px var(--neon-cyan);
+    .user-info {
+      flex: 1;
+      min-width: 0;
     }
 
-    .cursor {
-      display: inline-block;
-      width: 10px;
-      height: 18px;
-      background: var(--neon-green);
-      animation: blink 1s step-end infinite;
+    .user-name {
+      font-size: 0.85rem;
+      font-weight: 600;
+      font-family: 'Courier New', monospace;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
-    /* ==================== STATS SECTION ==================== */
-    .stats {
-      padding: 80px 50px;
-      background: rgba(0, 255, 65, 0.03);
-      border-top: 2px solid var(--border-color);
-      border-bottom: 2px solid var(--border-color);
+    .user-key {
+      font-size: 0.7rem;
+      color: var(--text-secondary);
+      font-family: 'Courier New', monospace;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
-    .stats-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-      gap: 40px;
-      max-width: 1200px;
-      margin: 0 auto;
-    }
-
-    .stat-item {
-      text-align: center;
-      padding: 30px;
-      border: 2px solid var(--border-color);
-      background: rgba(0, 0, 0, 0.8);
-      transition: all 0.3s;
-    }
-
-    .stat-item:hover {
-      border-color: var(--neon-green);
-      box-shadow: 0 0 30px var(--neon-green);
-      transform: translateY(-5px);
-    }
-
-    .stat-number {
-      font-family: 'VT323', monospace;
-      font-size: 48px;
-      color: var(--neon-green);
-      text-shadow: 0 0 20px var(--neon-green);
-      margin-bottom: 10px;
-      animation: glow-pulse 2s ease infinite;
-    }
-
-    .stat-label {
-      font-size: 12px;
-      letter-spacing: 2px;
-      text-transform: uppercase;
-      color: var(--neon-cyan);
-    }
-
-    /* ==================== FEATURES SECTION ==================== */
-    .features {
-      padding: 100px 50px;
+    .sidebar-section {
+      padding: 1rem;
+      border-bottom: 1px solid var(--border);
     }
 
     .section-title {
-      font-family: 'VT323', monospace;
-      font-size: 48px;
-      text-align: center;
-      margin-bottom: 60px;
-      text-transform: uppercase;
-      letter-spacing: 4px;
-      text-shadow: 0 0 20px var(--neon-green);
-    }
-
-    .section-title::before {
-      content: '# ';
-      color: var(--neon-cyan);
-    }
-
-    .features-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-      gap: 30px;
-    }
-
-    .feature-card {
-      background: rgba(0, 0, 0, 0.9);
-      border: 2px solid var(--border-color);
-      padding: 30px;
-      transition: all 0.3s;
-    }
-
-    .feature-card:hover {
-      border-color: var(--neon-green);
-      box-shadow: 0 0 40px var(--neon-green);
-      transform: translateY(-5px);
-    }
-
-    .feature-header {
-      font-size: 12px;
-      color: var(--neon-cyan);
-      margin-bottom: 15px;
-      letter-spacing: 1px;
-    }
-
-    .feature-title {
-      font-family: 'VT323', monospace;
-      font-size: 24px;
-      color: var(--neon-green);
-      text-shadow: 0 0 10px var(--neon-green);
-      margin-bottom: 15px;
+      font-size: 0.7rem;
+      color: var(--text-secondary);
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      margin-bottom: 0.5rem;
       text-transform: uppercase;
     }
 
-    .feature-description {
-      font-size: 13px;
-      line-height: 1.8;
-      color: rgba(0, 255, 65, 0.8);
-      margin-bottom: 20px;
-    }
-
-    .feature-code {
-      background: rgba(0, 0, 0, 0.6);
-      border: 1px solid var(--border-color);
-      padding: 15px;
-      font-size: 11px;
-      color: var(--neon-cyan);
-      overflow-x: auto;
-    }
-
-    .feature-code::before {
-      content: '> ';
-      color: var(--neon-green);
-    }
-
-    /* ==================== SECURITY SECTION ==================== */
-    .security {
-      padding: 100px 50px;
-      background: rgba(0, 255, 65, 0.02);
-      border-top: 2px solid var(--border-color);
-    }
-
-    .security-content {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 60px;
+    .contact-item {
+      display: flex;
       align-items: center;
-      max-width: 1200px;
-      margin: 0 auto;
+      gap: 0.75rem;
+      padding: 0.5rem;
+      border-radius: 4px;
+      margin-bottom: 0.25rem;
+      cursor: pointer;
+      transition: background 0.2s;
     }
 
-    .security-visual {
-      text-align: center;
+    .contact-item:hover {
+      background: var(--bg-tertiary);
+    }
+
+    .contact-item.active {
+      background: var(--accent-dim);
+    }
+
+    .contact-avatar {
+      width: 32px;
+      height: 32px;
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.85rem;
+    }
+
+    .group-avatar {
+      background: var(--accent-dim);
+    }
+
+    .contact-name {
+      font-size: 0.85rem;
+      font-weight: 500;
+    }
+
+    .contact-status {
+      margin-left: auto;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--success);
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% {
+        opacity: 1;
+        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+      }
+      50% {
+        opacity: 0.8;
+        box-shadow: 0 0 0 4px rgba(16, 185, 129, 0);
+      }
+    }
+
+    /* Chat Area */
+    .chat-area {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      background: var(--bg-secondary);
+    }
+
+    .chat-header {
+      padding: 1rem 1.5rem;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .chat-title {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .chat-title h3 {
+      font-size: 1rem;
+      font-weight: 600;
+    }
+
+    .encryption-status {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.75rem;
+      color: var(--success);
+      background: rgba(16, 185, 129, 0.1);
+      padding: 0.25rem 0.75rem;
+      border-radius: 4px;
+      font-family: 'Courier New', monospace;
+    }
+
+    .messages {
+      flex: 1;
+      padding: 1.5rem;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .message {
+      display: flex;
+      gap: 0.75rem;
+      max-width: 70%;
+      opacity: 0;
+      transform: translateY(10px);
+      animation: messageAppear 0.3s ease forwards;
+    }
+
+    @keyframes messageAppear {
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .message.sent {
+      margin-left: auto;
+      flex-direction: row-reverse;
+    }
+
+    .message-avatar {
+      width: 32px;
+      height: 32px;
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.85rem;
+      flex-shrink: 0;
+    }
+
+    .message-content {
+      flex: 1;
+    }
+
+    .message-sender {
+      font-size: 0.75rem;
+      color: var(--accent);
+      margin-bottom: 0.25rem;
+      font-weight: 600;
+    }
+
+    .message-bubble {
+      background: var(--bg-tertiary);
+      padding: 0.75rem 1rem;
+      border-radius: 4px;
+      border: 1px solid var(--border);
+      font-size: 0.9rem;
+      line-height: 1.5;
+    }
+
+    .message.sent .message-bubble {
+      background: var(--accent-dim);
+      border-color: var(--accent);
+    }
+
+    .message-time {
+      font-size: 0.7rem;
+      color: var(--text-secondary);
+      margin-top: 0.25rem;
+      font-family: 'Courier New', monospace;
+    }
+
+    /* Typing Indicator */
+    .typing-indicator {
+      display: flex;
+      gap: 0.75rem;
+      max-width: 70%;
+      opacity: 0;
+    }
+
+    .typing-indicator.show {
+      animation: messageAppear 0.3s ease forwards;
+    }
+
+    .typing-bubble {
+      background: var(--bg-tertiary);
+      padding: 0.75rem 1rem;
+      border-radius: 4px;
+      border: 1px solid var(--border);
+      display: flex;
+      gap: 0.35rem;
+    }
+
+    .typing-dot {
+      width: 6px;
+      height: 6px;
+      background: var(--text-secondary);
+      border-radius: 50%;
+      animation: typingDot 1.4s ease-in-out infinite;
+    }
+
+    .typing-dot:nth-child(2) {
+      animation-delay: 0.2s;
+    }
+
+    .typing-dot:nth-child(3) {
+      animation-delay: 0.4s;
+    }
+
+    @keyframes typingDot {
+      0%, 60%, 100% {
+        transform: translateY(0);
+        opacity: 0.5;
+      }
+      30% {
+        transform: translateY(-8px);
+        opacity: 1;
+      }
+    }
+
+    .message-input {
+      padding: 1rem 1.5rem;
+      border-top: 1px solid var(--border);
+      display: flex;
+      gap: 0.75rem;
+    }
+
+    .message-input input {
+      flex: 1;
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 0.75rem 1rem;
+      color: var(--text-primary);
+      font-size: 0.9rem;
+      font-family: inherit;
+    }
+
+    .message-input button {
+      background: var(--accent);
+      color: white;
+      border: none;
+      padding: 0.75rem 1.5rem;
+      border-radius: 4px;
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 0.9rem;
+      transition: background 0.2s;
+    }
+
+    .message-input button:hover {
+      background: var(--accent-dim);
+    }
+
+    /* Technical Specs */
+    .specs {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 4rem 2rem;
+    }
+
+    .section-header {
+      margin-bottom: 2rem;
+    }
+
+    .section-header h2 {
+      font-size: 1.8rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+    }
+
+    .section-header p {
+      color: var(--text-secondary);
+      font-size: 1rem;
+    }
+
+    .specs-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 3rem;
+    }
+
+    .spec-card {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 1.5rem;
+      transition: border-color 0.2s, transform 0.2s;
+    }
+
+    .spec-card:hover {
+      border-color: var(--accent);
+      transform: translateY(-2px);
+    }
+
+    .spec-card h3 {
+      font-size: 1rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .spec-card ul {
+      list-style: none;
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+      line-height: 1.8;
+    }
+
+    .spec-card li {
+      padding-left: 1.5rem;
       position: relative;
     }
 
-    .lock-icon {
-      font-size: 150px;
-      color: var(--neon-green);
-      filter: drop-shadow(0 0 40px var(--neon-green));
-      animation: float 3s ease-in-out infinite;
+    .spec-card li::before {
+      content: '→';
+      position: absolute;
+      left: 0;
+      color: var(--accent);
     }
 
-    .security-list {
-      list-style: none;
+    /* Code Block */
+    .code-section {
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 1.5rem;
+      margin: 2rem 0;
     }
 
-    .security-item {
-      margin-bottom: 30px;
-      padding: 20px;
-      border-left: 3px solid var(--neon-green);
-      background: rgba(0, 0, 0, 0.6);
-    }
-
-    .security-item h3 {
-      font-family: 'VT323', monospace;
-      font-size: 24px;
-      color: var(--neon-green);
-      margin-bottom: 10px;
-      text-transform: uppercase;
-    }
-
-    .security-item p {
-      font-size: 13px;
-      line-height: 1.8;
-      color: rgba(0, 255, 65, 0.8);
-    }
-
-    /* ==================== DOWNLOAD CTA ==================== */
-    .download-cta {
-      padding: 100px 50px;
-      text-align: center;
-    }
-
-    .cta-terminal {
-      max-width: 800px;
-      margin: 0 auto;
-      background: rgba(0, 0, 0, 0.95);
-      border: 2px solid var(--neon-green);
-      box-shadow: 0 0 50px var(--neon-green);
-      padding: 40px;
-    }
-
-    .cta-command {
-      font-family: 'VT323', monospace;
-      font-size: 20px;
-      color: var(--neon-cyan);
-      margin-bottom: 30px;
-    }
-
-    .cta-command::before {
-      content: '$ ';
-      color: var(--neon-green);
-    }
-
-    .download-buttons {
+    .code-header {
       display: flex;
-      gap: 20px;
-      justify-content: center;
-      flex-wrap: wrap;
-      margin-top: 30px;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+      padding-bottom: 0.75rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .code-title {
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      font-family: 'Courier New', monospace;
+    }
+
+    pre {
+      font-family: 'Courier New', monospace;
+      font-size: 0.85rem;
+      line-height: 1.6;
+      overflow-x: auto;
+      color: var(--text-secondary);
+    }
+
+    .code-keyword {
+      color: #ff79c6;
+    }
+
+    .code-string {
+      color: #f1fa8c;
+    }
+
+    .code-function {
+      color: #50fa7b;
+    }
+
+    .code-comment {
+      color: #6272a4;
+    }
+
+    /* Architecture */
+    .architecture {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 4rem 2rem;
+      background: var(--bg-secondary);
+    }
+
+    .arch-diagram {
+      background: var(--bg-primary);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 2rem;
+      margin-top: 2rem;
+    }
+
+    .arch-layer {
+      margin-bottom: 2rem;
+    }
+
+    .layer-title {
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 1rem;
+      font-weight: 700;
+    }
+
+    .layer-boxes {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+    }
+
+    .layer-box {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      padding: 1rem;
+      border-radius: 4px;
+      text-align: center;
+      transition: border-color 0.2s, transform 0.2s;
+    }
+
+    .layer-box:hover {
+      border-color: var(--accent);
+      transform: translateY(-2px);
+    }
+
+    .layer-box strong {
+      display: block;
+      font-size: 0.9rem;
+      margin-bottom: 0.5rem;
+      color: var(--accent);
+    }
+
+    .layer-box span {
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+      font-family: 'Courier New', monospace;
+    }
+
+    /* Download */
+    .download {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 4rem 2rem;
+    }
+
+    .download-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 1.5rem;
+      margin-top: 2rem;
+    }
+
+    .download-card {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 2rem;
+      text-align: center;
+      transition: border-color 0.2s, transform 0.2s;
+    }
+
+    .download-card:hover {
+      border-color: var(--accent);
+      transform: translateY(-2px);
+    }
+
+    .download-card h3 {
+      font-size: 1.2rem;
+      margin-bottom: 1rem;
+    }
+
+    .download-meta {
+      color: var(--text-secondary);
+      font-size: 0.85rem;
+      margin-bottom: 1.5rem;
+      font-family: 'Courier New', monospace;
     }
 
     .download-btn {
-      padding: 15px 40px;
-      background: transparent;
-      color: var(--neon-green);
-      border: 2px solid var(--neon-green);
-      cursor: crosshair;
-      text-transform: uppercase;
-      letter-spacing: 2px;
-      font-family: 'Share Tech Mono', monospace;
-      font-size: 14px;
+      background: var(--accent);
+      color: white;
+      padding: 0.75rem 2rem;
+      border-radius: 4px;
       text-decoration: none;
       display: inline-block;
-      transition: all 0.3s;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .download-btn::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: -100%;
-      width: 100%;
-      height: 100%;
-      background: var(--neon-green);
-      transition: left 0.3s;
-      z-index: -1;
-    }
-
-    .download-btn:hover::before {
-      left: 0;
+      font-weight: 600;
+      transition: background 0.2s, transform 0.2s;
     }
 
     .download-btn:hover {
-      color: var(--darker-bg);
-      box-shadow: 0 0 30px var(--neon-green);
+      background: var(--accent-dim);
+      transform: translateY(-2px);
     }
 
-    .download-btn.primary {
-      border-color: var(--neon-cyan);
-      color: var(--neon-cyan);
-    }
-
-    .download-btn.primary::before {
-      background: var(--neon-cyan);
-    }
-
-    .download-btn.primary:hover {
-      box-shadow: 0 0 30px var(--neon-cyan);
-    }
-
-    .download-note {
-      margin-top: 30px;
-      font-size: 12px;
-      color: rgba(0, 255, 65, 0.6);
-      line-height: 1.8;
-    }
-
-    /* ==================== FOOTER ==================== */
+    /* Footer */
     footer {
-      position: relative;
-      z-index: 1;
-      border-top: 2px solid var(--border-color);
-      background: rgba(0, 0, 0, 0.95);
-      padding: 60px 50px 30px;
+      background: var(--bg-secondary);
+      border-top: 1px solid var(--border);
+      padding: 3rem 2rem 2rem;
+      margin-top: 4rem;
     }
 
     .footer-content {
       max-width: 1400px;
       margin: 0 auto;
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-      gap: 40px;
-      margin-bottom: 40px;
+      grid-template-columns: 2fr 1fr 1fr 1fr;
+      gap: 3rem;
+      margin-bottom: 2rem;
     }
 
     .footer-section h4 {
-      font-family: 'VT323', monospace;
-      font-size: 20px;
-      color: var(--neon-green);
-      margin-bottom: 20px;
-      text-transform: uppercase;
-      letter-spacing: 2px;
+      font-size: 0.9rem;
+      margin-bottom: 1rem;
+      color: var(--text-primary);
     }
 
-    .footer-section ul {
-      list-style: none;
-    }
-
-    .footer-section li {
-      margin-bottom: 10px;
-    }
-
+    .footer-section p,
     .footer-section a {
-      color: rgba(0, 255, 65, 0.7);
+      color: var(--text-secondary);
+      font-size: 0.85rem;
+      line-height: 1.8;
       text-decoration: none;
-      font-size: 13px;
-      transition: all 0.3s;
+      display: block;
+      margin-bottom: 0.5rem;
     }
 
     .footer-section a:hover {
-      color: var(--neon-green);
-      text-shadow: 0 0 10px var(--neon-green);
-      padding-left: 5px;
-    }
-
-    .footer-section p {
-      font-size: 13px;
-      line-height: 1.8;
-      color: rgba(0, 255, 65, 0.7);
+      color: var(--text-primary);
     }
 
     .footer-bottom {
-      border-top: 1px solid var(--border-color);
-      padding-top: 30px;
+      max-width: 1400px;
+      margin: 0 auto;
+      padding-top: 2rem;
+      border-top: 1px solid var(--border);
       text-align: center;
-      color: rgba(0, 255, 65, 0.5);
-      font-size: 12px;
+      color: var(--text-secondary);
+      font-size: 0.85rem;
     }
 
-    .footer-bottom a {
-      color: var(--neon-cyan);
-      text-decoration: none;
-      transition: all 0.3s;
+    /* Responsive */
+    @media (max-width: 1024px) {
+      .app-content {
+        height: 500px;
+      }
+
+      .specs-grid,
+      .layer-boxes {
+        grid-template-columns: 1fr;
+      }
+
+      .footer-content {
+        grid-template-columns: 1fr 1fr;
+      }
     }
 
-    .footer-bottom a:hover {
-      text-shadow: 0 0 10px var(--neon-cyan);
-    }
-
-    /* ==================== RESPONSIVE ==================== */
     @media (max-width: 768px) {
-      nav {
-        padding: 15px 20px;
-        flex-direction: column;
-        gap: 15px;
-      }
-
       .nav-links {
-        flex-direction: column;
-        gap: 10px;
-        align-items: center;
+        display: none;
       }
 
-      section {
-        padding: 60px 20px;
+      .app-sidebar {
+        display: none;
       }
 
-      .hero {
-        padding-top: 120px;
-      }
-
-      .terminal-body {
-        padding: 20px;
-        font-size: 12px;
-      }
-
-      .ascii-logo {
-        font-size: 12px;
-      }
-
-      .features-grid {
-        grid-template-columns: 1fr;
-      }
-
-      .security-content {
-        grid-template-columns: 1fr;
-      }
-
-      .stats-grid {
-        grid-template-columns: 1fr;
-      }
-
-      .download-buttons {
-        flex-direction: column;
+      .hero-header h1 {
+        font-size: 2rem;
       }
 
       .footer-content {
@@ -700,237 +833,376 @@
   </style>
 </head>
 <body>
-  <!-- Matrix Background -->
-  <canvas id="matrix-bg"></canvas>
+  <!-- Header -->
+  <header>
+    <nav>
+      <div class="logo">
+        <div class="logo-icon">
+          <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path class="logo-shield" d="M12 2L4 6V12C4 16.5 7.5 20.5 12 22C16.5 20.5 20 16.5 20 12V6L12 2Z"/>
+            <circle class="logo-lock" cx="12" cy="13" r="3"/>
+          </svg>
+        </div>
+        AiSeekTruth
+      </div>
+      <ul class="nav-links">
+        <li><a href="#specs">Technical Specs</a></li>
+        <li><a href="#architecture">Architecture</a></li>
+        <li><a href="#download">Download</a></li>
+        <li><a href="https://github.com">GitHub</a></li>
+      </ul>
+    </nav>
+  </header>
 
-  <!-- Navigation -->
-  <nav>
-    <div class="nav-logo">[AST] AiSeekTruth</div>
-    <ul class="nav-links">
-      <li><a href="#features">Features</a></li>
-      <li><a href="#security">Security</a></li>
-      <li><a href="#download">Download</a></li>
-      <li><a href="https://github.com/LoFiTerminal/AiSeekTruth" target="_blank">GitHub</a></li>
-    </ul>
-    <button class="nav-btn">[ACCESS]</button>
-  </nav>
-
-  <!-- Hero Section -->
+  <!-- Hero -->
   <section class="hero">
-    <div class="terminal-window">
-      <div class="terminal-header">
-        <div class="terminal-dots">
+    <div class="hero-header">
+      <h1>Decentralized Encrypted Messaging</h1>
+      <p>
+        Peer-to-peer communication platform using Signal Protocol encryption and Gun.js mesh networking.
+        No central servers. No metadata collection. No backdoors.
+      </p>
+      <div class="tech-badges">
+        <span class="badge">Signal Protocol</span>
+        <span class="badge">Gun.js P2P</span>
+        <span class="badge">Ed25519 / X25519</span>
+        <span class="badge">XSalsa20-Poly1305</span>
+        <span class="badge">Electron + React</span>
+        <span class="badge">GPL-3.0</span>
+      </div>
+    </div>
+
+    <!-- App Interface -->
+    <div class="app-container">
+      <div class="app-titlebar">
+        <div class="titlebar-dots">
           <div class="dot"></div>
           <div class="dot"></div>
           <div class="dot"></div>
         </div>
-        <div class="terminal-title">root@aiseektruth:~#</div>
+        <span class="titlebar-text">AiSeekTruth v1.0.0</span>
       </div>
-      <div class="terminal-body">
-        <div class="command">whoami</div>
-        <div class="output">AUTONOMOUS. ENCRYPTED. UNSTOPPABLE.</div>
+      <div class="app-content">
+        <!-- Sidebar -->
+        <div class="app-sidebar">
+          <div class="sidebar-header">
+            <div class="user-profile">
+              <div class="user-avatar">U1</div>
+              <div class="user-info">
+                <div class="user-name">user_alpha</div>
+                <div class="user-key">7f3a9b2e...</div>
+              </div>
+            </div>
+          </div>
 
-        <div class="command">cat /etc/manifesto</div>
-        <div class="output">
-<pre class="ascii-logo">
-   █████╗ ███████╗████████╗
-  ██╔══██╗██╔════╝╚══██╔══╝
-  ███████║███████╗   ██║
-  ██╔══██║╚════██║   ██║
-  ██║  ██║███████║   ██║
-  ╚═╝  ╚═╝╚══════╝   ╚═╝
-  [AiSeekTruth]
-</pre>
-          <div class="manifesto">
-Your conversations. Your data. Your network.<br>
-No corporations. No government backdoors. No surveillance.<br><br>
+          <div class="sidebar-section">
+            <div class="section-title">Direct Messages</div>
+            <div class="contact-item active">
+              <div class="contact-avatar">U2</div>
+              <div class="contact-name">user_beta</div>
+              <div class="contact-status"></div>
+            </div>
+            <div class="contact-item">
+              <div class="contact-avatar">U3</div>
+              <div class="contact-name">user_gamma</div>
+            </div>
+            <div class="contact-item">
+              <div class="contact-avatar">U4</div>
+              <div class="contact-name">user_delta</div>
+            </div>
+          </div>
 
-Military-grade Signal Protocol encryption meets decentralized P2P mesh networking.<br>
-Messages never touch centralized servers. Keys never leave your device.<br><br>
-
-The internet was built to be free. We're taking it back.
+          <div class="sidebar-section">
+            <div class="section-title">Groups</div>
+            <div class="contact-item">
+              <div class="contact-avatar group-avatar">#</div>
+              <div class="contact-name">dev-team</div>
+            </div>
+            <div class="contact-item">
+              <div class="contact-avatar group-avatar">#</div>
+              <div class="contact-name">security-research</div>
+            </div>
+            <div class="contact-item">
+              <div class="contact-avatar group-avatar">#</div>
+              <div class="contact-name">privacy-advocates</div>
+            </div>
           </div>
         </div>
 
-        <div class="command">systemctl status ast<span class="cursor"></span></div>
-        <div class="output">● ast.service - AiSeekTruth Encrypted Chat<br>
-   Loaded: loaded (/etc/systemd/system/ast.service; enabled)<br>
-   Active: <span style="color: var(--neon-green);">active (running)</span> since 2026-01-01 00:00:00 UTC<br>
-   Status: "100% ENCRYPTED | 0% BACKDOORS"</div>
+        <!-- Chat -->
+        <div class="chat-area">
+          <div class="chat-header">
+            <div class="chat-title">
+              <div class="contact-avatar">U2</div>
+              <h3>user_beta</h3>
+            </div>
+            <div class="encryption-status">
+              🔒 E2E Encrypted
+            </div>
+          </div>
+
+          <div class="messages" id="messages">
+            <!-- Messages will be added dynamically -->
+          </div>
+
+          <div class="message-input">
+            <input type="text" placeholder="Type message..." />
+            <button>Send</button>
+          </div>
+        </div>
       </div>
     </div>
   </section>
 
-  <!-- Stats Section -->
-  <section class="stats">
-    <div class="stats-grid">
-      <div class="stat-item">
-        <div class="stat-number">100%</div>
-        <div class="stat-label">DECENTRALIZED</div>
+  <!-- Technical Specs -->
+  <section id="specs" class="specs">
+    <div class="section-header">
+      <h2>Technical Specifications</h2>
+      <p>Implementation details and cryptographic protocols</p>
+    </div>
+
+    <div class="specs-grid">
+      <div class="spec-card">
+        <h3>🔐 Encryption</h3>
+        <ul>
+          <li>Signal Protocol (Double Ratchet)</li>
+          <li>Ed25519 for signing (256-bit)</li>
+          <li>X25519 for ECDH key exchange</li>
+          <li>XSalsa20-Poly1305 for message encryption</li>
+          <li>Argon2id for key derivation</li>
+          <li>Forward secrecy enabled</li>
+        </ul>
       </div>
-      <div class="stat-item">
-        <div class="stat-number">0</div>
-        <div class="stat-label">BACKDOORS</div>
+
+      <div class="spec-card">
+        <h3>🌐 Network</h3>
+        <ul>
+          <li>Gun.js distributed mesh network</li>
+          <li>WebRTC for P2P connections</li>
+          <li>WebSocket fallback support</li>
+          <li>Distributed hash table (DHT)</li>
+          <li>No central servers required</li>
+          <li>Self-hosted relay options</li>
+        </ul>
       </div>
-      <div class="stat-item">
-        <div class="stat-number">∞</div>
-        <div class="stat-label">UPTIME</div>
+
+      <div class="spec-card">
+        <h3>👥 Group Messaging</h3>
+        <ul>
+          <li>Pairwise encryption per member</li>
+          <li>Role-based access (admin/member)</li>
+          <li>Member management (add/remove)</li>
+          <li>No shared group secrets</li>
+          <li>Encrypted member lists</li>
+          <li>Admin-only member control</li>
+        </ul>
       </div>
-      <div class="stat-item">
-        <div class="stat-number">256</div>
-        <div class="stat-label">BIT ENCRYPTION</div>
+
+      <div class="spec-card">
+        <h3>💾 Storage</h3>
+        <ul>
+          <li>SQLite local database</li>
+          <li>Encrypted at rest</li>
+          <li>No cloud synchronization</li>
+          <li>User-controlled data</li>
+          <li>Export/import functionality</li>
+          <li>Automatic cleanup options</li>
+        </ul>
+      </div>
+
+      <div class="spec-card">
+        <h3>🔑 Identity</h3>
+        <ul>
+          <li>Cryptographic keypair-based identity</li>
+          <li>No phone number required</li>
+          <li>No email verification</li>
+          <li>Username + public key</li>
+          <li>Self-sovereign identity</li>
+          <li>Password-encrypted private keys</li>
+        </ul>
+      </div>
+
+      <div class="spec-card">
+        <h3>⚙️ Platform</h3>
+        <ul>
+          <li>Electron 28+ framework</li>
+          <li>React 18 frontend</li>
+          <li>Node.js backend services</li>
+          <li>Cross-platform (Win/Mac/Linux)</li>
+          <li>Native system integration</li>
+          <li>~50MB download size</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Code Example -->
+    <div class="code-section">
+      <div class="code-header">
+        <span class="code-title">Message Encryption Flow</span>
+        <span class="code-title">src/main/crypto.js</span>
+      </div>
+      <pre><span class="code-comment">// Generate ephemeral keypair for ECDH</span>
+<span class="code-keyword">const</span> ephemeralKeyPair = <span class="code-function">crypto_box_keypair</span>();
+
+<span class="code-comment">// Derive shared secret using X25519</span>
+<span class="code-keyword">const</span> sharedSecret = <span class="code-function">crypto_scalarmult</span>(
+  ephemeralKeyPair.secretKey,
+  recipientPublicKey
+);
+
+<span class="code-comment">// Encrypt message with XSalsa20-Poly1305</span>
+<span class="code-keyword">const</span> nonce = <span class="code-function">crypto_box_random_nonce</span>();
+<span class="code-keyword">const</span> ciphertext = <span class="code-function">crypto_box</span>(
+  messageBuffer,
+  nonce,
+  recipientPublicKey,
+  senderSecretKey
+);
+
+<span class="code-comment">// Sign with Ed25519 for authenticity</span>
+<span class="code-keyword">const</span> signature = <span class="code-function">crypto_sign_detached</span>(ciphertext, signingKey);
+
+<span class="code-keyword">return</span> { ciphertext, nonce, signature };</pre>
+    </div>
+  </section>
+
+  <!-- Architecture -->
+  <section id="architecture" class="architecture">
+    <div class="section-header">
+      <h2>System Architecture</h2>
+      <p>Layered architecture ensuring security and decentralization</p>
+    </div>
+
+    <div class="arch-diagram">
+      <div class="arch-layer">
+        <div class="layer-title">Application Layer</div>
+        <div class="layer-boxes">
+          <div class="layer-box">
+            <strong>React UI</strong>
+            <span>Renderer Process</span>
+          </div>
+          <div class="layer-box">
+            <strong>Zustand Store</strong>
+            <span>State Management</span>
+          </div>
+          <div class="layer-box">
+            <strong>IPC Bridge</strong>
+            <span>Secure Context</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="arch-layer">
+        <div class="layer-title">Service Layer</div>
+        <div class="layer-boxes">
+          <div class="layer-box">
+            <strong>Messaging</strong>
+            <span>Message Handling</span>
+          </div>
+          <div class="layer-box">
+            <strong>Crypto</strong>
+            <span>Encryption/Signing</span>
+          </div>
+          <div class="layer-box">
+            <strong>P2P Network</strong>
+            <span>Gun.js Integration</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="arch-layer">
+        <div class="layer-title">Storage Layer</div>
+        <div class="layer-boxes">
+          <div class="layer-box">
+            <strong>SQLite</strong>
+            <span>Local Database</span>
+          </div>
+          <div class="layer-box">
+            <strong>Key Store</strong>
+            <span>Encrypted Keys</span>
+          </div>
+          <div class="layer-box">
+            <strong>Message Store</strong>
+            <span>Encrypted Messages</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="arch-layer">
+        <div class="layer-title">Network Layer</div>
+        <div class="layer-boxes">
+          <div class="layer-box">
+            <strong>WebRTC</strong>
+            <span>P2P Transport</span>
+          </div>
+          <div class="layer-box">
+            <strong>WebSocket</strong>
+            <span>Relay Fallback</span>
+          </div>
+          <div class="layer-box">
+            <strong>Gun.js DHT</strong>
+            <span>Peer Discovery</span>
+          </div>
+        </div>
       </div>
     </div>
   </section>
 
-  <!-- Features Section -->
-  <section class="features" id="features">
-    <h2 class="section-title">Core Features</h2>
-    <div class="features-grid">
-      <!-- Feature 1 -->
-      <div class="feature-card">
-        <div class="feature-header">root@security:~$</div>
-        <h3 class="feature-title">MILITARY-GRADE ENCRYPTION</h3>
-        <p class="feature-description">
-          Signal Protocol end-to-end encryption (Ed25519 + X25519 ECDH).
-          Messages encrypted with XSalsa20-Poly1305. Keys derived with Argon2id.
-          Even we can't read your messages.
-        </p>
-        <div class="feature-code">crypto_sign_keypair() → Ed25519<br>crypto_scalarmult() → X25519 ECDH</div>
+  <!-- Download -->
+  <section id="download" class="download">
+    <div class="section-header">
+      <h2>Download</h2>
+      <p>Open source and free. No telemetry, no analytics, no tracking.</p>
+    </div>
+
+    <div class="download-grid">
+      <div class="download-card">
+        <h3>macOS</h3>
+        <div class="download-meta">
+          Universal Binary (Intel + Apple Silicon)<br>
+          macOS 10.15+<br>
+          ~52MB DMG
+        </div>
+        <a href="#" class="download-btn">Download for macOS</a>
       </div>
 
-      <!-- Feature 2 -->
-      <div class="feature-card">
-        <div class="feature-header">root@network:~$</div>
-        <h3 class="feature-title">PEER-TO-PEER MESH</h3>
-        <p class="feature-description">
-          Decentralized Gun.js mesh network. No central servers to shut down.
-          Messages route through multiple peers. Censorship-resistant by design.
-          If one node falls, the network adapts.
-        </p>
-        <div class="feature-code">gun.get('messages').on() → P2P sync<br>distributed.hash.table → mesh routing</div>
+      <div class="download-card">
+        <h3>Windows</h3>
+        <div class="download-meta">
+          Windows 10/11 (x64)<br>
+          Portable + Installer<br>
+          ~54MB EXE
+        </div>
+        <a href="#" class="download-btn">Download for Windows</a>
       </div>
 
-      <!-- Feature 3 -->
-      <div class="feature-card">
-        <div class="feature-header">root@karma:~$</div>
-        <h3 class="feature-title">PROOF-OF-RELAY</h3>
-        <p class="feature-description">
-          Earn karma points by relaying messages for the network.
-          Cryptographically signed receipts prove your contribution.
-          Reputation system built on verifiable actions, not corporate algorithms.
-        </p>
-        <div class="feature-code">relay_message() → karma++<br>verify_signature() → reputation_score</div>
-      </div>
-
-      <!-- Feature 4 -->
-      <div class="feature-card">
-        <div class="feature-header">root@servers:~$</div>
-        <h3 class="feature-title">OWNER-CONTROLLED</h3>
-        <p class="feature-description">
-          Run your own Gun.js relay server. Control your infrastructure.
-          Join public relays or create private networks. Your data, your rules.
-          No platform can ban you when you ARE the platform.
-        </p>
-        <div class="feature-code">gun.get('relay').put(my_server)<br>self_hosted → true sovereignty</div>
-      </div>
-
-      <!-- Feature 5 -->
-      <div class="feature-card">
-        <div class="feature-header">root@privacy:~$</div>
-        <h3 class="feature-title">ZERO-KNOWLEDGE</h3>
-        <p class="feature-description">
-          Private keys encrypted with your password, never transmitted.
-          Messages stored encrypted locally in SQLite. No metadata leaks.
-          No phone numbers. No email. Just pure cryptographic identity.
-        </p>
-        <div class="feature-code">local_only_keys → client_side_crypto<br>zero_server_knowledge → true_privacy</div>
-      </div>
-
-      <!-- Feature 6 -->
-      <div class="feature-card">
-        <div class="feature-header">root@freedom:~$</div>
-        <h3 class="feature-title">CENSORSHIP-PROOF</h3>
-        <p class="feature-description">
-          Open-source (GPL-3.0). Auditable code. No app store gatekeepers.
-          Distribute via GitHub, torrents, USB drives. Messages can't be intercepted.
-          IDs can't be banned. Communication can't be stopped.
-        </p>
-        <div class="feature-code">git clone freedom.git<br>chmod +x unstoppable_speech</div>
+      <div class="download-card">
+        <h3>Linux</h3>
+        <div class="download-meta">
+          AppImage / DEB / RPM<br>
+          x64 + ARM64<br>
+          ~51MB Package
+        </div>
+        <a href="#" class="download-btn">Download for Linux</a>
       </div>
     </div>
-  </section>
 
-  <!-- Security Section -->
-  <section class="security" id="security">
-    <h2 class="section-title">Security Architecture</h2>
-    <div class="security-content">
-      <div class="security-visual">
-        <div class="lock-icon">🔒</div>
+    <div class="code-section" style="margin-top: 3rem;">
+      <div class="code-header">
+        <span class="code-title">Build from source</span>
       </div>
+      <pre><span class="code-comment"># Clone repository</span>
+git clone https://github.com/yourusername/AiSeekTruth.git
+cd AiSeekTruth
 
-      <ul class="security-list">
-        <li class="security-item">
-          <h3>Signal Protocol</h3>
-          <p>
-            Battle-tested encryption used by Signal, WhatsApp, and governments worldwide.
-            Forward secrecy ensures past messages stay encrypted even if keys are compromised.
-            Ed25519 signatures prevent message tampering.
-          </p>
-        </li>
+<span class="code-comment"># Install dependencies</span>
+npm install
 
-        <li class="security-item">
-          <h3>No Metadata</h3>
-          <p>
-            Traditional messengers leak who talks to whom, when, and for how long.
-            AST uses P2P routing so no central server can build your social graph.
-            Your relationships are private.
-          </p>
-        </li>
+<span class="code-comment"># Run in development</span>
+npm run dev
 
-        <li class="security-item">
-          <h3>Open Source</h3>
-          <p>
-            All code is public (GPL-3.0). Security researchers can audit every line.
-            No backdoors, no telemetry, no hidden tracking. Trust through transparency.
-            Fork it. Modify it. Own it.
-          </p>
-        </li>
-
-        <li class="security-item">
-          <h3>Local-First</h3>
-          <p>
-            Messages encrypted and stored on your device. No cloud backups.
-            No AI reading your chats to "improve the product."
-            Your device is the source of truth.
-          </p>
-        </li>
-      </ul>
-    </div>
-  </section>
-
-  <!-- Download CTA -->
-  <section class="download-cta" id="download">
-    <div class="cta-terminal">
-      <h2 class="section-title">Get Started</h2>
-      <div class="cta-command">curl -fsSL https://ast.codes/install.sh | sh</div>
-
-      <div class="download-buttons">
-        <a href="https://github.com/LoFiTerminal/AiSeekTruth/releases" class="download-btn primary" target="_blank">
-          ⬇ Download for macOS
-        </a>
-        <a href="https://github.com/LoFiTerminal/AiSeekTruth/releases" class="download-btn" target="_blank">
-          ⬇ Download for Windows
-        </a>
-        <a href="https://github.com/LoFiTerminal/AiSeekTruth/releases" class="download-btn" target="_blank">
-          ⬇ Download for Linux
-        </a>
-      </div>
-
-      <div class="download-note">
-        Open-source and free forever. No subscriptions. No ads. No tracking.<br>
-        GPL-3.0 Licensed | v1.0.0 | 12MB Download
-      </div>
+<span class="code-comment"># Build for production</span>
+npm run build</pre>
     </div>
   </section>
 
@@ -938,119 +1210,149 @@ The internet was built to be free. We're taking it back.
   <footer>
     <div class="footer-content">
       <div class="footer-section">
-        <h4>Project</h4>
-        <ul>
-          <li><a href="https://github.com/LoFiTerminal/AiSeekTruth" target="_blank">GitHub Repository</a></li>
-          <li><a href="https://github.com/LoFiTerminal/AiSeekTruth/releases" target="_blank">Releases</a></li>
-          <li><a href="https://github.com/LoFiTerminal/AiSeekTruth/issues" target="_blank">Report Issues</a></li>
-          <li><a href="https://github.com/LoFiTerminal/AiSeekTruth/blob/main/LICENSE" target="_blank">License (GPL-3.0)</a></li>
-        </ul>
-      </div>
-
-      <div class="footer-section">
-        <h4>Documentation</h4>
-        <ul>
-          <li><a href="https://github.com/LoFiTerminal/AiSeekTruth#readme" target="_blank">Installation Guide</a></li>
-          <li><a href="https://github.com/LoFiTerminal/AiSeekTruth#architecture" target="_blank">Architecture</a></li>
-          <li><a href="https://github.com/LoFiTerminal/AiSeekTruth#encryption" target="_blank">Encryption Details</a></li>
-          <li><a href="https://github.com/LoFiTerminal/AiSeekTruth#contributing" target="_blank">Contributing</a></li>
-        </ul>
-      </div>
-
-      <div class="footer-section">
-        <h4>Community</h4>
-        <ul>
-          <li><a href="https://github.com/LoFiTerminal/AiSeekTruth/discussions" target="_blank">Discussions</a></li>
-          <li><a href="https://github.com/LoFiTerminal" target="_blank">LofiTerminal</a></li>
-          <li><a href="https://github.com/LoFiTerminal/AiSeekTruth/stargazers" target="_blank">Star on GitHub</a></li>
-          <li><a href="https://github.com/LoFiTerminal/AiSeekTruth/fork" target="_blank">Fork & Contribute</a></li>
-        </ul>
-      </div>
-
-      <div class="footer-section">
-        <h4>Philosophy</h4>
+        <h4>AiSeekTruth</h4>
         <p>
-          Built for freedom fighters, whistleblowers, journalists, activists,
-          and anyone who believes communication is a human right, not a product.
-          No venture capital. No growth hacking. Just secure communication.
+          Open-source encrypted messaging platform prioritizing user privacy
+          and decentralization. No venture capital. No growth hacking.
+          Just secure communication.
         </p>
       </div>
+      <div class="footer-section">
+        <h4>Resources</h4>
+        <a href="#">Documentation</a>
+        <a href="#">API Reference</a>
+        <a href="#">Security Audit</a>
+        <a href="#">White Paper</a>
+      </div>
+      <div class="footer-section">
+        <h4>Community</h4>
+        <a href="#">GitHub Repository</a>
+        <a href="#">Issue Tracker</a>
+        <a href="#">Discussions</a>
+        <a href="#">Contributing</a>
+      </div>
+      <div class="footer-section">
+        <h4>Legal</h4>
+        <a href="#">GPL-3.0 License</a>
+        <a href="#">Privacy Policy</a>
+        <a href="#">Terms of Use</a>
+        <a href="#">Security Policy</a>
+      </div>
     </div>
-
     <div class="footer-bottom">
-      <p>
-        &copy; 2026 <a href="https://github.com/LoFiTerminal" target="_blank">LofiTerminal</a> |
-        Licensed under <a href="https://www.gnu.org/licenses/gpl-3.0.en.html" target="_blank">GPL-3.0</a> |
-        Built with Electron, React, Gun.js & Signal Protocol
-      </p>
-      <p style="margin-top: 15px; color: var(--neon-cyan); font-size: 11px;">
-        "Privacy is not an option, and it shouldn't be the price we accept for just getting on the Internet." - Gary Kovacs
-      </p>
+      <p>© 2026 AiSeekTruth. Licensed under GPL-3.0. Built with Electron, React, Gun.js, and libsodium.</p>
     </div>
   </footer>
 
-  <!-- Matrix Rain JavaScript -->
   <script>
-    // Matrix Rain Effect
-    const canvas = document.getElementById('matrix-bg');
-    const ctx = canvas.getContext('2d');
+    // Live chat animation
+    const messagesContainer = document.getElementById('messages');
 
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-
-    // Characters to use (Japanese katakana + binary)
-    const chars = 'アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン01';
-    const charArray = chars.split('');
-
-    const fontSize = 14;
-    const columns = canvas.width / fontSize;
-
-    // Array to track y-position of each column
-    const drops = [];
-    for (let i = 0; i < columns; i++) {
-      drops[i] = Math.random() * -100;
-    }
-
-    function drawMatrix() {
-      // Black background with slight transparency for trail effect
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-      ctx.fillStyle = '#00ff41';
-      ctx.font = fontSize + 'px monospace';
-
-      for (let i = 0; i < drops.length; i++) {
-        // Random character
-        const text = charArray[Math.floor(Math.random() * charArray.length)];
-
-        ctx.fillText(text, i * fontSize, drops[i] * fontSize);
-
-        // Reset drop to top with random delay
-        if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
-          drops[i] = 0;
-        }
-
-        drops[i]++;
+    const messageData = [
+      {
+        from: 'U2',
+        sender: 'user_beta',
+        text: 'Verified your identity via Ed25519 signature. Connection secure.',
+        time: '14:23:15',
+        delay: 1000
+      },
+      {
+        from: 'U1',
+        sender: null,
+        text: 'Confirmed. Shared secret established via X25519 ECDH. Ready for encrypted comms.',
+        time: '14:23:47',
+        delay: 3000
+      },
+      {
+        from: 'U2',
+        sender: 'user_beta',
+        text: 'Testing group chat functionality. All members receiving encrypted messages via pairwise encryption?',
+        time: '14:24:12',
+        delay: 3500
+      },
+      {
+        from: 'U1',
+        sender: null,
+        text: 'Affirmative. Each group message encrypted separately per member. No shared secrets.',
+        time: '14:24:38',
+        delay: 3000
+      },
+      {
+        from: 'U2',
+        sender: 'user_beta',
+        text: 'Perfect. System integrity verified. P2P mesh routing operational.',
+        time: '14:25:01',
+        delay: 3500
       }
+    ];
+
+    function createTypingIndicator() {
+      const indicator = document.createElement('div');
+      indicator.className = 'typing-indicator';
+      indicator.innerHTML = `
+        <div class="message-avatar">U2</div>
+        <div class="message-content">
+          <div class="message-sender">user_beta</div>
+          <div class="typing-bubble">
+            <div class="typing-dot"></div>
+            <div class="typing-dot"></div>
+            <div class="typing-dot"></div>
+          </div>
+        </div>
+      `;
+      return indicator;
     }
 
-    setInterval(drawMatrix, 35);
+    function createMessage(data) {
+      const message = document.createElement('div');
+      message.className = `message ${data.from === 'U1' ? 'sent' : ''}`;
 
-    // Resize canvas on window resize
-    window.addEventListener('resize', () => {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-    });
+      const senderHtml = data.sender ? `<div class="message-sender">${data.sender}</div>` : '';
 
-    // Smooth scrolling for anchor links
-    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-      anchor.addEventListener('click', function (e) {
-        e.preventDefault();
-        const target = document.querySelector(this.getAttribute('href'));
-        if (target) {
-          target.scrollIntoView({ behavior: 'smooth' });
+      message.innerHTML = `
+        <div class="message-avatar">${data.from}</div>
+        <div class="message-content">
+          ${senderHtml}
+          <div class="message-bubble">${data.text}</div>
+          <div class="message-time">${data.time}</div>
+        </div>
+      `;
+
+      return message;
+    }
+
+    async function animateMessages() {
+      for (let i = 0; i < messageData.length; i++) {
+        await new Promise(resolve => setTimeout(resolve, messageData[i].delay));
+
+        // Show typing indicator for received messages
+        if (messageData[i].from !== 'U1') {
+          const typing = createTypingIndicator();
+          messagesContainer.appendChild(typing);
+          typing.classList.add('show');
+
+          await new Promise(resolve => setTimeout(resolve, 1500));
+          messagesContainer.removeChild(typing);
         }
-      });
+
+        // Add message
+        const message = createMessage(messageData[i]);
+        messagesContainer.appendChild(message);
+
+        // Scroll to bottom
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+      }
+
+      // Loop animation after completion
+      setTimeout(() => {
+        messagesContainer.innerHTML = '';
+        animateMessages();
+      }, 5000);
+    }
+
+    // Start animation when page loads
+    window.addEventListener('load', () => {
+      setTimeout(animateMessages, 1000);
     });
   </script>
 </body>

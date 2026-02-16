@@ -9,13 +9,20 @@ class P2PNetwork extends EventEmitter {
     this.contactSubscriptions = new Map();
     this.heartbeatInterval = null;
     this.isInitialized = false;
+    this.config = {
+      actAsRelay: true,      // Default: help strengthen network
+      enableMulticast: true,  // Default: discover local peers
+      maxRelayStorage: 100,   // Max 100MB for relay data
+      customRelays: []        // User can add their own relays
+    };
   }
 
   /**
-   * Initialize Gun.js with public relay servers
+   * Initialize Gun.js with hybrid P2P/relay mode
    * @param {Object} identity - User's identity
+   * @param {Object} userConfig - Optional configuration
    */
-  initialize(identity) {
+  initialize(identity, userConfig = {}) {
     if (this.isInitialized) {
       console.log('P2P network already initialized');
       return;
@@ -23,18 +30,70 @@ class P2PNetwork extends EventEmitter {
 
     this.identity = identity;
 
-    // Initialize Gun with public relay servers
-    this.gun = Gun({
-      peers: [
-        'https://gun-manhattan.herokuapp.com/gun',
-        'https://gunjs.herokuapp.com/gun',
-        'https://e2eec.herokuapp.com/gun',
-      ],
-      localStorage: false, // Don't store in localStorage
-      radisk: false, // Don't use disk storage
-    });
+    // Merge user config with defaults
+    this.config = { ...this.config, ...userConfig };
+
+    // Build relay list
+    const publicRelays = [
+      'https://gun-manhattan.herokuapp.com/gun',
+      'https://gunjs.herokuapp.com/gun',
+      'https://e2eec.herokuapp.com/gun',
+    ];
+
+    const allRelays = [
+      ...publicRelays,
+      ...this.config.customRelays
+    ];
+
+    console.log('=== P2P Network Configuration ===');
+    console.log('Mode: Hybrid (Client + Relay)');
+    console.log('Act as relay:', this.config.actAsRelay);
+    console.log('Multicast enabled:', this.config.enableMulticast);
+    console.log('Connected to', allRelays.length, 'relay servers');
+    console.log('Max relay storage:', this.config.maxRelayStorage, 'MB');
+
+    // Initialize Gun with hybrid configuration
+    const gunConfig = {
+      // Connect to external relays for bootstrap
+      peers: allRelays,
+
+      // ENABLE RELAY MODE - Help strengthen the network
+      localStorage: this.config.actAsRelay,  // Store & forward messages
+      radisk: this.config.actAsRelay,        // Persist relay data
+
+      // Multicast for local peer discovery
+      multicast: this.config.enableMulticast ? {
+        address: '233.255.255.255',
+        port: 8765
+      } : false,
+
+      // Don't store too much relay data
+      until: this.config.maxRelayStorage * 1024 * 1024, // Convert MB to bytes
+
+      // WebRTC configuration for direct peer connections
+      WebRTC: {
+        enabled: true,
+        iceServers: [
+          { urls: 'stun:stun.l.google.com:19302' },
+          { urls: 'stun:stun1.l.google.com:19302' }
+        ]
+      }
+    };
+
+    this.gun = Gun(gunConfig);
 
     this.isInitialized = true;
+
+    // Listen for peer connections
+    this.gun.on('hi', (peer) => {
+      console.log('Connected to peer:', peer.url || 'local peer');
+      this.emit('peer:connected', { peer: peer.url || 'local' });
+    });
+
+    this.gun.on('bye', (peer) => {
+      console.log('Disconnected from peer:', peer.url || 'local peer');
+      this.emit('peer:disconnected', { peer: peer.url || 'local' });
+    });
 
     // Announce presence
     this.announceOnline(identity.publicKey, identity.username, 'online');
@@ -42,7 +101,11 @@ class P2PNetwork extends EventEmitter {
     // Start heartbeat to maintain presence
     this.startHeartbeat();
 
-    console.log('P2P network initialized for:', identity.username);
+    // Log relay statistics periodically
+    this.startRelayMonitoring();
+
+    console.log('✅ P2P network initialized (HYBRID MODE) for:', identity.username);
+    console.log('🌐 Your app is now helping strengthen the network!');
   }
 
   /**
@@ -225,6 +288,83 @@ class P2PNetwork extends EventEmitter {
   }
 
   /**
+   * Start monitoring relay statistics
+   */
+  startRelayMonitoring() {
+    if (!this.config.actAsRelay) return;
+
+    // Log relay stats every 5 minutes
+    setInterval(() => {
+      const stats = this.getRelayStats();
+      console.log('📊 Relay Statistics:', stats);
+      this.emit('relay:stats', stats);
+    }, 5 * 60 * 1000);
+  }
+
+  /**
+   * Get relay statistics
+   * @returns {Object} Relay statistics
+   */
+  getRelayStats() {
+    if (!this.gun || !this.config.actAsRelay) {
+      return {
+        enabled: false
+      };
+    }
+
+    return {
+      enabled: true,
+      mode: 'hybrid',
+      connectedPeers: this.getConnectedPeers().length,
+      actingAsRelay: this.config.actAsRelay,
+      multicastEnabled: this.config.enableMulticast,
+      maxStorage: this.config.maxRelayStorage + ' MB',
+      uptime: process.uptime()
+    };
+  }
+
+  /**
+   * Get list of connected peers
+   * @returns {Array} List of connected peer URLs
+   */
+  getConnectedPeers() {
+    if (!this.gun || !this.gun.back) return [];
+
+    const peers = [];
+    const gunPeers = this.gun.back('opt.peers');
+
+    if (gunPeers) {
+      for (let id in gunPeers) {
+        const peer = gunPeers[id];
+        if (peer && peer.url) {
+          peers.push(peer.url);
+        }
+      }
+    }
+
+    return peers;
+  }
+
+  /**
+   * Update network configuration
+   * @param {Object} newConfig - New configuration
+   */
+  updateConfig(newConfig) {
+    console.log('Updating P2P network configuration:', newConfig);
+
+    const oldActAsRelay = this.config.actAsRelay;
+    this.config = { ...this.config, ...newConfig };
+
+    // If relay mode changed, need to reinitialize
+    if (oldActAsRelay !== this.config.actAsRelay) {
+      console.log('Relay mode changed, reinitialization required');
+      this.emit('config:changed', { requiresRestart: true });
+    } else {
+      this.emit('config:changed', { requiresRestart: false });
+    }
+  }
+
+  /**
    * Disconnect from P2P network
    */
   disconnect() {
@@ -241,6 +381,11 @@ class P2PNetwork extends EventEmitter {
     }
 
     this.isInitialized = false;
+
+    if (this.config.actAsRelay) {
+      console.log('🌐 Relay mode disabled - no longer helping network');
+    }
+
     console.log('P2P network disconnected');
   }
 
@@ -251,6 +396,10 @@ class P2PNetwork extends EventEmitter {
     return {
       initialized: this.isInitialized,
       subscriptions: this.contactSubscriptions.size,
+      mode: this.config.actAsRelay ? 'hybrid (client + relay)' : 'client only',
+      relayEnabled: this.config.actAsRelay,
+      multicastEnabled: this.config.enableMulticast,
+      connectedPeers: this.getConnectedPeers().length
     };
   }
 }
