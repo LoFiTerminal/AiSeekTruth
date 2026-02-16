@@ -3,7 +3,7 @@
 > Decentralized, end-to-end encrypted communication for truth seekers
 
 [![License: GPL-3.0](https://img.shields.io/badge/License-GPL%203.0-green.svg)](https://opensource.org/licenses/GPL-3.0)
-[![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey.svg)](https://github.com/LofiTerminal/AiSeekTruth/releases)
+[![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey.svg)](https://github.com/LoFiTerminal/AiSeekTruth/releases)
 [![Electron](https://img.shields.io/badge/Electron-28-blue.svg)](https://www.electronjs.org/)
 [![React](https://img.shields.io/badge/React-18-blue.svg)](https://reactjs.org/)
 
@@ -22,15 +22,15 @@
 
 Pre-built binaries for all platforms:
 
-- [macOS (Intel/Apple Silicon)](https://github.com/LofiTerminal/AiSeekTruth/releases)
-- [Windows (x64)](https://github.com/LofiTerminal/AiSeekTruth/releases)
-- [Linux (AppImage/deb/rpm)](https://github.com/LofiTerminal/AiSeekTruth/releases)
+- [macOS (Intel/Apple Silicon)](https://github.com/LoFiTerminal/AiSeekTruth/releases)
+- [Windows (x64)](https://github.com/LoFiTerminal/AiSeekTruth/releases)
+- [Linux (AppImage/deb/rpm)](https://github.com/LoFiTerminal/AiSeekTruth/releases)
 
 ### Build from Source
 
 ```bash
 # Clone the repository
-git clone https://github.com/LofiTerminal/AiSeekTruth.git
+git clone https://github.com/LoFiTerminal/AiSeekTruth.git
 cd AiSeekTruth
 
 # Install dependencies
@@ -156,7 +156,7 @@ AiSeekTruth/
 
 ### For Users
 
-- **Installation Guide** - [Download and install](https://github.com/LofiTerminal/AiSeekTruth/releases)
+- **Installation Guide** - [Download and install](https://github.com/LoFiTerminal/AiSeekTruth/releases)
 - **User Manual** - How to create identity, add contacts, send messages
 - **Security Best Practices** - Verify public keys, secure your password
 
@@ -229,10 +229,10 @@ See the [LICENSE](LICENSE) file for full details.
 ## 🌐 Links
 
 - **Website**: [https://lofiterminal.github.io/AiSeekTruth](https://lofiterminal.github.io/AiSeekTruth)
-- **GitHub**: [https://github.com/LofiTerminal/AiSeekTruth](https://github.com/LofiTerminal/AiSeekTruth)
-- **Releases**: [Download latest version](https://github.com/LofiTerminal/AiSeekTruth/releases)
-- **Issues**: [Report bugs](https://github.com/LofiTerminal/AiSeekTruth/issues)
-- **Discussions**: [Community forum](https://github.com/LofiTerminal/AiSeekTruth/discussions)
+- **GitHub**: [https://github.com/LoFiTerminal/AiSeekTruth](https://github.com/LoFiTerminal/AiSeekTruth)
+- **Releases**: [Download latest version](https://github.com/LoFiTerminal/AiSeekTruth/releases)
+- **Issues**: [Report bugs](https://github.com/LoFiTerminal/AiSeekTruth/issues)
+- **Discussions**: [Community forum](https://github.com/LoFiTerminal/AiSeekTruth/discussions)
 
 ## 🙏 Acknowledgments
 
@@ -248,7 +248,7 @@ Special thanks to all contributors and the open-source community.
 
 ---
 
-**Built by [@LofiTerminal](https://github.com/LofiTerminal) with 🔒**
+**Built by [@LofiTerminal](https://github.com/LoFiTerminal) with 🔒**
 
 *"Code is speech. Encryption is a human right."*
 
