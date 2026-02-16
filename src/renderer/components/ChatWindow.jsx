@@ -1,12 +1,14 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { MessageCircle, Lock, User, Hash, Users } from 'lucide-react';
 import useStore from '../store';
 import MessageInput from './MessageInput';
+import GroupMembers from './GroupMembers';
 
 function ChatWindow() {
   const { activeContact, activeGroup, messages, groupMessages, identity } = useStore();
   const messagesEndRef = useRef(null);
   const messagesContainerRef = useRef(null);
+  const [showMembers, setShowMembers] = useState(true);
 
   const isGroupChat = !!activeGroup;
   const activeChat = isGroupChat ? activeGroup : activeContact;
@@ -55,41 +57,60 @@ function ChatWindow() {
   }
 
   return (
-    <div className="chat-window">
-      {/* Chat Header */}
-      <div className="chat-header">
-        <div className="chat-contact-info">
-          <div className="contact-avatar">
-            {isGroupChat ? <Hash size={20} /> : <User size={20} />}
+    <div className="chat-window" style={{ display: 'flex', height: '100%' }}>
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', height: '100%' }}>
+        {/* Chat Header */}
+        <div className="chat-header">
+          <div className="chat-contact-info">
+            <div className="contact-avatar">
+              {isGroupChat ? <Hash size={20} /> : <User size={20} />}
+            </div>
+            <div className="chat-contact-details">
+              <h2>
+                {isGroupChat
+                  ? activeGroup.name
+                  : (activeContact.nickname || activeContact.username)}
+              </h2>
+              {!isGroupChat && (
+                <div className="chat-contact-status">
+                  <span className={`status-dot ${activeContact.status || 'offline'}`}></span>
+                  {activeContact.status === 'online' ? 'Online' : 'Offline'}
+                </div>
+              )}
+              {isGroupChat && activeGroup.description && (
+                <div className="chat-contact-status">
+                  {activeGroup.description}
+                </div>
+              )}
+            </div>
           </div>
-          <div className="chat-contact-details">
-            <h2>
-              {isGroupChat
-                ? activeGroup.name
-                : (activeContact.nickname || activeContact.username)}
-            </h2>
-            {!isGroupChat && (
-              <div className="chat-contact-status">
-                <span className={`status-dot ${activeContact.status || 'offline'}`}></span>
-                {activeContact.status === 'online' ? 'Online' : 'Offline'}
-              </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            {isGroupChat && (
+              <button
+                onClick={() => setShowMembers(!showMembers)}
+                style={{
+                  padding: '4px 8px',
+                  fontSize: '10px',
+                  minHeight: 'auto',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '4px'
+                }}
+              >
+                <Users size={12} />
+                {showMembers ? 'Hide' : 'Show'}
+              </button>
             )}
-            {isGroupChat && activeGroup.description && (
-              <div className="chat-contact-status">
-                {activeGroup.description}
-              </div>
-            )}
+            <div className="encryption-indicator">
+              <Lock size={12} />
+              E2E
+            </div>
           </div>
         </div>
 
-        <div className="encryption-indicator">
-          <Lock size={12} />
-          E2E
-        </div>
-      </div>
-
-      {/* Messages Container */}
-      <div className="messages-container" ref={messagesContainerRef}>
+        {/* Messages Container */}
+        <div className="messages-container" ref={messagesContainerRef}>
         {activeMessages.length === 0 ? (
           <div className="chat-empty">
             <MessageCircle className="chat-empty-icon" size={60} />
@@ -142,12 +163,18 @@ function ChatWindow() {
               </div>
             );
           })
-        )}
-        <div ref={messagesEndRef} />
+          )}
+          <div ref={messagesEndRef} />
+        </div>
+
+        {/* Message Input */}
+        <MessageInput />
       </div>
 
-      {/* Message Input */}
-      <MessageInput />
+      {/* Group Members Panel */}
+      {isGroupChat && showMembers && (
+        <GroupMembers group={activeGroup} onClose={() => setShowMembers(false)} />
+      )}
     </div>
   );
 }
