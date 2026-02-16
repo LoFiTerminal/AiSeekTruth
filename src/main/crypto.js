@@ -1,18 +1,13 @@
-const _sodium = require('libsodium-wrappers');
+const sodium = require('libsodium-wrappers');
 
-// Initialize libsodium and cache it
-let sodium = null;
+// Promise to track libsodium initialization
 let sodiumReadyPromise = null;
 
 async function ensureSodiumReady() {
   if (!sodiumReadyPromise) {
-    sodiumReadyPromise = _sodium.ready.then(() => {
-      sodium = _sodium;
-      return sodium;
-    });
+    sodiumReadyPromise = sodium.ready;
   }
   await sodiumReadyPromise;
-  return sodium;
 }
 
 /**
@@ -23,7 +18,7 @@ async function ensureSodiumReady() {
  * @returns {Object} Identity object with public/private keys
  */
 async function createIdentity(username, password) {
-  sodium = await ensureSodiumReady();
+  await ensureSodiumReady();
 
   // Generate Ed25519 signing key pair
   const signingKeyPair = sodium.crypto_sign_keypair();
@@ -55,7 +50,7 @@ async function createIdentity(username, password) {
  * @returns {Object} Encrypted identity data
  */
 async function encryptIdentityForStorage(identity, password) {
-  sodium = await ensureSodiumReady();
+  await ensureSodiumReady();
 
   // Generate random salt for Argon2id
   const salt = sodium.randombytes_buf(sodium.crypto_pwhash_SALTBYTES);
@@ -101,7 +96,7 @@ async function encryptIdentityForStorage(identity, password) {
  * @returns {Object|null} Decrypted identity or null if password incorrect
  */
 async function decryptIdentityFromStorage(stored, password) {
-  sodium = await ensureSodiumReady();
+  await ensureSodiumReady();
 
   try {
     const salt = sodium.from_base64(stored.salt);
@@ -144,7 +139,7 @@ async function decryptIdentityFromStorage(stored, password) {
  * @returns {Uint8Array} Shared secret
  */
 async function deriveSharedSecret(myPrivateKeyBase64, theirPublicKeyBase64) {
-  sodium = await ensureSodiumReady();
+  await ensureSodiumReady();
 
   const myPrivateKey = sodium.from_base64(myPrivateKeyBase64);
   const theirPublicKey = sodium.from_base64(theirPublicKeyBase64);
@@ -163,7 +158,7 @@ async function deriveSharedSecret(myPrivateKeyBase64, theirPublicKeyBase64) {
  * @returns {Object} Encrypted message with nonce
  */
 async function encryptMessage(plaintext, sharedSecret) {
-  sodium = await ensureSodiumReady();
+  await ensureSodiumReady();
 
   // Generate random nonce
   const nonce = sodium.randombytes_buf(sodium.crypto_secretbox_NONCEBYTES);
@@ -185,7 +180,7 @@ async function encryptMessage(plaintext, sharedSecret) {
  * @returns {string|null} Decrypted message or null if verification fails
  */
 async function decryptMessage(ciphertextBase64, nonceBase64, sharedSecret) {
-  sodium = await ensureSodiumReady();
+  await ensureSodiumReady();
 
   try {
     const ciphertext = sodium.from_base64(ciphertextBase64);
@@ -208,7 +203,7 @@ async function decryptMessage(ciphertextBase64, nonceBase64, sharedSecret) {
  * @returns {string} Detached signature (base64)
  */
 async function signMessage(message, privateKeyBase64) {
-  sodium = await ensureSodiumReady();
+  await ensureSodiumReady();
 
   const privateKey = sodium.from_base64(privateKeyBase64);
 
@@ -226,7 +221,7 @@ async function signMessage(message, privateKeyBase64) {
  * @returns {boolean} True if signature is valid
  */
 async function verifySignature(message, signatureBase64, publicKeyBase64) {
-  sodium = await ensureSodiumReady();
+  await ensureSodiumReady();
 
   try {
     const signature = sodium.from_base64(signatureBase64);
@@ -244,7 +239,7 @@ async function verifySignature(message, signatureBase64, publicKeyBase64) {
  * @returns {string} Random message ID
  */
 async function generateMessageId() {
-  sodium = await ensureSodiumReady();
+  await ensureSodiumReady();
 
   const randomBytes = sodium.randombytes_buf(16);
   return sodium.to_base64(randomBytes);
@@ -256,7 +251,7 @@ async function generateMessageId() {
  * @returns {string} X25519 public key (base64)
  */
 async function getEncryptionPublicKey(publicKeyBase64) {
-  sodium = await ensureSodiumReady();
+  await ensureSodiumReady();
 
   const publicKey = sodium.from_base64(publicKeyBase64);
   const encryptionPublicKey = sodium.crypto_sign_ed25519_pk_to_curve25519(publicKey);
@@ -270,7 +265,7 @@ async function getEncryptionPublicKey(publicKeyBase64) {
  * @returns {string} Random bytes (base64)
  */
 async function generateRandomBytes(length) {
-  sodium = await ensureSodiumReady();
+  await ensureSodiumReady();
 
   const randomBytes = sodium.randombytes_buf(length);
   return sodium.to_base64(randomBytes);
