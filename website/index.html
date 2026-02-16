@@ -1,0 +1,1057 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="AST [AiSeekTruth] - Military-grade encrypted P2P communication. Decentralized. Unstoppable. Zero backdoors. Own your data.">
+  <meta name="keywords" content="encrypted chat, P2P, decentralized, Signal Protocol, privacy, secure messaging, end-to-end encryption">
+  <meta name="author" content="LofiTerminal">
+
+  <title>AST [AiSeekTruth] - Encrypted. Decentralized. Unstoppable.</title>
+
+  <link rel="icon" type="image/svg+xml" href="ast-favicon.svg">
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=VT323&display=swap" rel="stylesheet">
+
+  <style>
+    /* ==================== VARIABLES ==================== */
+    :root {
+      --neon-green: #00ff41;
+      --neon-cyan: #00ffff;
+      --neon-pink: #ff006e;
+      --neon-purple: #b537f2;
+      --dark-bg: #0a0a0a;
+      --darker-bg: #000000;
+      --border-color: rgba(0, 255, 65, 0.3);
+    }
+
+    /* ==================== RESET ==================== */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: 'Share Tech Mono', monospace;
+      background: var(--darker-bg);
+      color: var(--neon-green);
+      overflow-x: hidden;
+      cursor: crosshair;
+      position: relative;
+    }
+
+    /* Scanline effect */
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: repeating-linear-gradient(
+        0deg,
+        rgba(0, 0, 0, 0.15),
+        rgba(0, 0, 0, 0.15) 1px,
+        transparent 1px,
+        transparent 2px
+      );
+      pointer-events: none;
+      z-index: 9999;
+      animation: scanline 8s linear infinite;
+    }
+
+    @keyframes scanline {
+      0% { transform: translateY(0); }
+      100% { transform: translateY(10px); }
+    }
+
+    /* ==================== MATRIX BACKGROUND ==================== */
+    #matrix-bg {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 0;
+      opacity: 0.15;
+    }
+
+    /* ==================== NAVIGATION ==================== */
+    nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      padding: 20px 50px;
+      background: rgba(0, 0, 0, 0.9);
+      backdrop-filter: blur(10px);
+      border-bottom: 2px solid var(--border-color);
+      box-shadow: 0 0 20px var(--neon-green);
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .nav-logo {
+      font-family: 'VT323', monospace;
+      font-size: 28px;
+      letter-spacing: 3px;
+      text-shadow: 0 0 15px var(--neon-green);
+      animation: glow-pulse 2s ease infinite;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 30px;
+      list-style: none;
+    }
+
+    .nav-links a {
+      color: var(--neon-green);
+      text-decoration: none;
+      text-transform: uppercase;
+      font-size: 14px;
+      letter-spacing: 2px;
+      transition: all 0.3s;
+      position: relative;
+    }
+
+    .nav-links a::before {
+      content: '>';
+      position: absolute;
+      left: -15px;
+      opacity: 0;
+      transition: all 0.3s;
+    }
+
+    .nav-links a:hover {
+      text-shadow: 0 0 10px var(--neon-green);
+    }
+
+    .nav-links a:hover::before {
+      opacity: 1;
+      left: -20px;
+    }
+
+    .nav-btn {
+      padding: 10px 25px;
+      background: transparent;
+      color: var(--neon-green);
+      border: 2px solid var(--neon-green);
+      cursor: crosshair;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 14px;
+      transition: all 0.3s;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .nav-btn::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: var(--neon-green);
+      transition: left 0.3s;
+      z-index: -1;
+    }
+
+    .nav-btn:hover::before {
+      left: 0;
+    }
+
+    .nav-btn:hover {
+      color: var(--darker-bg);
+      box-shadow: 0 0 30px var(--neon-green);
+    }
+
+    /* ==================== ANIMATIONS ==================== */
+    @keyframes glow-pulse {
+      0%, 100% { text-shadow: 0 0 10px var(--neon-green); }
+      50% { text-shadow: 0 0 20px var(--neon-green), 0 0 30px var(--neon-green); }
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-20px); }
+    }
+
+    @keyframes blink {
+      0%, 50% { opacity: 1; }
+      51%, 100% { opacity: 0; }
+    }
+
+    @keyframes slide-in {
+      from { opacity: 0; transform: translateY(30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ==================== SECTIONS ==================== */
+    section {
+      position: relative;
+      z-index: 1;
+      padding: 100px 50px;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    /* ==================== HERO SECTION ==================== */
+    .hero {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding-top: 150px;
+    }
+
+    .terminal-window {
+      width: 100%;
+      max-width: 900px;
+      background: rgba(0, 0, 0, 0.95);
+      border: 2px solid var(--neon-green);
+      box-shadow: 0 0 50px var(--neon-green);
+      animation: slide-in 1s ease;
+    }
+
+    .terminal-header {
+      padding: 15px 20px;
+      background: rgba(0, 255, 65, 0.1);
+      border-bottom: 2px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .terminal-dots {
+      display: flex;
+      gap: 8px;
+    }
+
+    .dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      border: 2px solid var(--neon-green);
+      background: transparent;
+    }
+
+    .dot:nth-child(1) { border-color: var(--neon-pink); }
+    .dot:nth-child(2) { border-color: var(--neon-cyan); }
+    .dot:nth-child(3) { border-color: var(--neon-green); }
+
+    .terminal-title {
+      font-size: 14px;
+      letter-spacing: 2px;
+    }
+
+    .terminal-body {
+      padding: 30px;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 14px;
+      line-height: 1.8;
+    }
+
+    .command {
+      color: var(--neon-cyan);
+      margin-bottom: 10px;
+    }
+
+    .command::before {
+      content: '$ ';
+      color: var(--neon-green);
+    }
+
+    .output {
+      color: var(--neon-green);
+      margin-bottom: 20px;
+      padding-left: 15px;
+    }
+
+    .ascii-logo {
+      font-family: 'VT323', monospace;
+      font-size: 18px;
+      line-height: 1.2;
+      color: var(--neon-green);
+      text-shadow: 0 0 15px var(--neon-green);
+      margin: 30px 0;
+      white-space: pre;
+    }
+
+    .manifesto {
+      color: var(--neon-cyan);
+      font-size: 16px;
+      line-height: 1.8;
+      margin: 30px 0;
+      text-shadow: 0 0 8px var(--neon-cyan);
+    }
+
+    .cursor {
+      display: inline-block;
+      width: 10px;
+      height: 18px;
+      background: var(--neon-green);
+      animation: blink 1s step-end infinite;
+    }
+
+    /* ==================== STATS SECTION ==================== */
+    .stats {
+      padding: 80px 50px;
+      background: rgba(0, 255, 65, 0.03);
+      border-top: 2px solid var(--border-color);
+      border-bottom: 2px solid var(--border-color);
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 40px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .stat-item {
+      text-align: center;
+      padding: 30px;
+      border: 2px solid var(--border-color);
+      background: rgba(0, 0, 0, 0.8);
+      transition: all 0.3s;
+    }
+
+    .stat-item:hover {
+      border-color: var(--neon-green);
+      box-shadow: 0 0 30px var(--neon-green);
+      transform: translateY(-5px);
+    }
+
+    .stat-number {
+      font-family: 'VT323', monospace;
+      font-size: 48px;
+      color: var(--neon-green);
+      text-shadow: 0 0 20px var(--neon-green);
+      margin-bottom: 10px;
+      animation: glow-pulse 2s ease infinite;
+    }
+
+    .stat-label {
+      font-size: 12px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--neon-cyan);
+    }
+
+    /* ==================== FEATURES SECTION ==================== */
+    .features {
+      padding: 100px 50px;
+    }
+
+    .section-title {
+      font-family: 'VT323', monospace;
+      font-size: 48px;
+      text-align: center;
+      margin-bottom: 60px;
+      text-transform: uppercase;
+      letter-spacing: 4px;
+      text-shadow: 0 0 20px var(--neon-green);
+    }
+
+    .section-title::before {
+      content: '# ';
+      color: var(--neon-cyan);
+    }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+      gap: 30px;
+    }
+
+    .feature-card {
+      background: rgba(0, 0, 0, 0.9);
+      border: 2px solid var(--border-color);
+      padding: 30px;
+      transition: all 0.3s;
+    }
+
+    .feature-card:hover {
+      border-color: var(--neon-green);
+      box-shadow: 0 0 40px var(--neon-green);
+      transform: translateY(-5px);
+    }
+
+    .feature-header {
+      font-size: 12px;
+      color: var(--neon-cyan);
+      margin-bottom: 15px;
+      letter-spacing: 1px;
+    }
+
+    .feature-title {
+      font-family: 'VT323', monospace;
+      font-size: 24px;
+      color: var(--neon-green);
+      text-shadow: 0 0 10px var(--neon-green);
+      margin-bottom: 15px;
+      text-transform: uppercase;
+    }
+
+    .feature-description {
+      font-size: 13px;
+      line-height: 1.8;
+      color: rgba(0, 255, 65, 0.8);
+      margin-bottom: 20px;
+    }
+
+    .feature-code {
+      background: rgba(0, 0, 0, 0.6);
+      border: 1px solid var(--border-color);
+      padding: 15px;
+      font-size: 11px;
+      color: var(--neon-cyan);
+      overflow-x: auto;
+    }
+
+    .feature-code::before {
+      content: '> ';
+      color: var(--neon-green);
+    }
+
+    /* ==================== SECURITY SECTION ==================== */
+    .security {
+      padding: 100px 50px;
+      background: rgba(0, 255, 65, 0.02);
+      border-top: 2px solid var(--border-color);
+    }
+
+    .security-content {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 60px;
+      align-items: center;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .security-visual {
+      text-align: center;
+      position: relative;
+    }
+
+    .lock-icon {
+      font-size: 150px;
+      color: var(--neon-green);
+      filter: drop-shadow(0 0 40px var(--neon-green));
+      animation: float 3s ease-in-out infinite;
+    }
+
+    .security-list {
+      list-style: none;
+    }
+
+    .security-item {
+      margin-bottom: 30px;
+      padding: 20px;
+      border-left: 3px solid var(--neon-green);
+      background: rgba(0, 0, 0, 0.6);
+    }
+
+    .security-item h3 {
+      font-family: 'VT323', monospace;
+      font-size: 24px;
+      color: var(--neon-green);
+      margin-bottom: 10px;
+      text-transform: uppercase;
+    }
+
+    .security-item p {
+      font-size: 13px;
+      line-height: 1.8;
+      color: rgba(0, 255, 65, 0.8);
+    }
+
+    /* ==================== DOWNLOAD CTA ==================== */
+    .download-cta {
+      padding: 100px 50px;
+      text-align: center;
+    }
+
+    .cta-terminal {
+      max-width: 800px;
+      margin: 0 auto;
+      background: rgba(0, 0, 0, 0.95);
+      border: 2px solid var(--neon-green);
+      box-shadow: 0 0 50px var(--neon-green);
+      padding: 40px;
+    }
+
+    .cta-command {
+      font-family: 'VT323', monospace;
+      font-size: 20px;
+      color: var(--neon-cyan);
+      margin-bottom: 30px;
+    }
+
+    .cta-command::before {
+      content: '$ ';
+      color: var(--neon-green);
+    }
+
+    .download-buttons {
+      display: flex;
+      gap: 20px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-top: 30px;
+    }
+
+    .download-btn {
+      padding: 15px 40px;
+      background: transparent;
+      color: var(--neon-green);
+      border: 2px solid var(--neon-green);
+      cursor: crosshair;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 14px;
+      text-decoration: none;
+      display: inline-block;
+      transition: all 0.3s;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .download-btn::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: var(--neon-green);
+      transition: left 0.3s;
+      z-index: -1;
+    }
+
+    .download-btn:hover::before {
+      left: 0;
+    }
+
+    .download-btn:hover {
+      color: var(--darker-bg);
+      box-shadow: 0 0 30px var(--neon-green);
+    }
+
+    .download-btn.primary {
+      border-color: var(--neon-cyan);
+      color: var(--neon-cyan);
+    }
+
+    .download-btn.primary::before {
+      background: var(--neon-cyan);
+    }
+
+    .download-btn.primary:hover {
+      box-shadow: 0 0 30px var(--neon-cyan);
+    }
+
+    .download-note {
+      margin-top: 30px;
+      font-size: 12px;
+      color: rgba(0, 255, 65, 0.6);
+      line-height: 1.8;
+    }
+
+    /* ==================== FOOTER ==================== */
+    footer {
+      position: relative;
+      z-index: 1;
+      border-top: 2px solid var(--border-color);
+      background: rgba(0, 0, 0, 0.95);
+      padding: 60px 50px 30px;
+    }
+
+    .footer-content {
+      max-width: 1400px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 40px;
+      margin-bottom: 40px;
+    }
+
+    .footer-section h4 {
+      font-family: 'VT323', monospace;
+      font-size: 20px;
+      color: var(--neon-green);
+      margin-bottom: 20px;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+    }
+
+    .footer-section ul {
+      list-style: none;
+    }
+
+    .footer-section li {
+      margin-bottom: 10px;
+    }
+
+    .footer-section a {
+      color: rgba(0, 255, 65, 0.7);
+      text-decoration: none;
+      font-size: 13px;
+      transition: all 0.3s;
+    }
+
+    .footer-section a:hover {
+      color: var(--neon-green);
+      text-shadow: 0 0 10px var(--neon-green);
+      padding-left: 5px;
+    }
+
+    .footer-section p {
+      font-size: 13px;
+      line-height: 1.8;
+      color: rgba(0, 255, 65, 0.7);
+    }
+
+    .footer-bottom {
+      border-top: 1px solid var(--border-color);
+      padding-top: 30px;
+      text-align: center;
+      color: rgba(0, 255, 65, 0.5);
+      font-size: 12px;
+    }
+
+    .footer-bottom a {
+      color: var(--neon-cyan);
+      text-decoration: none;
+      transition: all 0.3s;
+    }
+
+    .footer-bottom a:hover {
+      text-shadow: 0 0 10px var(--neon-cyan);
+    }
+
+    /* ==================== RESPONSIVE ==================== */
+    @media (max-width: 768px) {
+      nav {
+        padding: 15px 20px;
+        flex-direction: column;
+        gap: 15px;
+      }
+
+      .nav-links {
+        flex-direction: column;
+        gap: 10px;
+        align-items: center;
+      }
+
+      section {
+        padding: 60px 20px;
+      }
+
+      .hero {
+        padding-top: 120px;
+      }
+
+      .terminal-body {
+        padding: 20px;
+        font-size: 12px;
+      }
+
+      .ascii-logo {
+        font-size: 12px;
+      }
+
+      .features-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .security-content {
+        grid-template-columns: 1fr;
+      }
+
+      .stats-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .download-buttons {
+        flex-direction: column;
+      }
+
+      .footer-content {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Matrix Background -->
+  <canvas id="matrix-bg"></canvas>
+
+  <!-- Navigation -->
+  <nav>
+    <div class="nav-logo">[AST] AiSeekTruth</div>
+    <ul class="nav-links">
+      <li><a href="#features">Features</a></li>
+      <li><a href="#security">Security</a></li>
+      <li><a href="#download">Download</a></li>
+      <li><a href="https://github.com/LofiTerminal/AiSeekTruth" target="_blank">GitHub</a></li>
+    </ul>
+    <button class="nav-btn">[ACCESS]</button>
+  </nav>
+
+  <!-- Hero Section -->
+  <section class="hero">
+    <div class="terminal-window">
+      <div class="terminal-header">
+        <div class="terminal-dots">
+          <div class="dot"></div>
+          <div class="dot"></div>
+          <div class="dot"></div>
+        </div>
+        <div class="terminal-title">root@aiseektruth:~#</div>
+      </div>
+      <div class="terminal-body">
+        <div class="command">whoami</div>
+        <div class="output">AUTONOMOUS. ENCRYPTED. UNSTOPPABLE.</div>
+
+        <div class="command">cat /etc/manifesto</div>
+        <div class="output">
+<pre class="ascii-logo">
+   █████╗ ███████╗████████╗
+  ██╔══██╗██╔════╝╚══██╔══╝
+  ███████║███████╗   ██║
+  ██╔══██║╚════██║   ██║
+  ██║  ██║███████║   ██║
+  ╚═╝  ╚═╝╚══════╝   ╚═╝
+  [AiSeekTruth]
+</pre>
+          <div class="manifesto">
+Your conversations. Your data. Your network.<br>
+No corporations. No government backdoors. No surveillance.<br><br>
+
+Military-grade Signal Protocol encryption meets decentralized P2P mesh networking.<br>
+Messages never touch centralized servers. Keys never leave your device.<br><br>
+
+The internet was built to be free. We're taking it back.
+          </div>
+        </div>
+
+        <div class="command">systemctl status ast<span class="cursor"></span></div>
+        <div class="output">● ast.service - AiSeekTruth Encrypted Chat<br>
+   Loaded: loaded (/etc/systemd/system/ast.service; enabled)<br>
+   Active: <span style="color: var(--neon-green);">active (running)</span> since 2026-01-01 00:00:00 UTC<br>
+   Status: "100% ENCRYPTED | 0% BACKDOORS"</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Stats Section -->
+  <section class="stats">
+    <div class="stats-grid">
+      <div class="stat-item">
+        <div class="stat-number">100%</div>
+        <div class="stat-label">DECENTRALIZED</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-number">0</div>
+        <div class="stat-label">BACKDOORS</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-number">∞</div>
+        <div class="stat-label">UPTIME</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-number">256</div>
+        <div class="stat-label">BIT ENCRYPTION</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features Section -->
+  <section class="features" id="features">
+    <h2 class="section-title">Core Features</h2>
+    <div class="features-grid">
+      <!-- Feature 1 -->
+      <div class="feature-card">
+        <div class="feature-header">root@security:~$</div>
+        <h3 class="feature-title">MILITARY-GRADE ENCRYPTION</h3>
+        <p class="feature-description">
+          Signal Protocol end-to-end encryption (Ed25519 + X25519 ECDH).
+          Messages encrypted with XSalsa20-Poly1305. Keys derived with Argon2id.
+          Even we can't read your messages.
+        </p>
+        <div class="feature-code">crypto_sign_keypair() → Ed25519<br>crypto_scalarmult() → X25519 ECDH</div>
+      </div>
+
+      <!-- Feature 2 -->
+      <div class="feature-card">
+        <div class="feature-header">root@network:~$</div>
+        <h3 class="feature-title">PEER-TO-PEER MESH</h3>
+        <p class="feature-description">
+          Decentralized Gun.js mesh network. No central servers to shut down.
+          Messages route through multiple peers. Censorship-resistant by design.
+          If one node falls, the network adapts.
+        </p>
+        <div class="feature-code">gun.get('messages').on() → P2P sync<br>distributed.hash.table → mesh routing</div>
+      </div>
+
+      <!-- Feature 3 -->
+      <div class="feature-card">
+        <div class="feature-header">root@karma:~$</div>
+        <h3 class="feature-title">PROOF-OF-RELAY</h3>
+        <p class="feature-description">
+          Earn karma points by relaying messages for the network.
+          Cryptographically signed receipts prove your contribution.
+          Reputation system built on verifiable actions, not corporate algorithms.
+        </p>
+        <div class="feature-code">relay_message() → karma++<br>verify_signature() → reputation_score</div>
+      </div>
+
+      <!-- Feature 4 -->
+      <div class="feature-card">
+        <div class="feature-header">root@servers:~$</div>
+        <h3 class="feature-title">OWNER-CONTROLLED</h3>
+        <p class="feature-description">
+          Run your own Gun.js relay server. Control your infrastructure.
+          Join public relays or create private networks. Your data, your rules.
+          No platform can ban you when you ARE the platform.
+        </p>
+        <div class="feature-code">gun.get('relay').put(my_server)<br>self_hosted → true sovereignty</div>
+      </div>
+
+      <!-- Feature 5 -->
+      <div class="feature-card">
+        <div class="feature-header">root@privacy:~$</div>
+        <h3 class="feature-title">ZERO-KNOWLEDGE</h3>
+        <p class="feature-description">
+          Private keys encrypted with your password, never transmitted.
+          Messages stored encrypted locally in SQLite. No metadata leaks.
+          No phone numbers. No email. Just pure cryptographic identity.
+        </p>
+        <div class="feature-code">local_only_keys → client_side_crypto<br>zero_server_knowledge → true_privacy</div>
+      </div>
+
+      <!-- Feature 6 -->
+      <div class="feature-card">
+        <div class="feature-header">root@freedom:~$</div>
+        <h3 class="feature-title">CENSORSHIP-PROOF</h3>
+        <p class="feature-description">
+          Open-source (GPL-3.0). Auditable code. No app store gatekeepers.
+          Distribute via GitHub, torrents, USB drives. Messages can't be intercepted.
+          IDs can't be banned. Communication can't be stopped.
+        </p>
+        <div class="feature-code">git clone freedom.git<br>chmod +x unstoppable_speech</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Security Section -->
+  <section class="security" id="security">
+    <h2 class="section-title">Security Architecture</h2>
+    <div class="security-content">
+      <div class="security-visual">
+        <div class="lock-icon">🔒</div>
+      </div>
+
+      <ul class="security-list">
+        <li class="security-item">
+          <h3>Signal Protocol</h3>
+          <p>
+            Battle-tested encryption used by Signal, WhatsApp, and governments worldwide.
+            Forward secrecy ensures past messages stay encrypted even if keys are compromised.
+            Ed25519 signatures prevent message tampering.
+          </p>
+        </li>
+
+        <li class="security-item">
+          <h3>No Metadata</h3>
+          <p>
+            Traditional messengers leak who talks to whom, when, and for how long.
+            AST uses P2P routing so no central server can build your social graph.
+            Your relationships are private.
+          </p>
+        </li>
+
+        <li class="security-item">
+          <h3>Open Source</h3>
+          <p>
+            All code is public (GPL-3.0). Security researchers can audit every line.
+            No backdoors, no telemetry, no hidden tracking. Trust through transparency.
+            Fork it. Modify it. Own it.
+          </p>
+        </li>
+
+        <li class="security-item">
+          <h3>Local-First</h3>
+          <p>
+            Messages encrypted and stored on your device. No cloud backups.
+            No AI reading your chats to "improve the product."
+            Your device is the source of truth.
+          </p>
+        </li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- Download CTA -->
+  <section class="download-cta" id="download">
+    <div class="cta-terminal">
+      <h2 class="section-title">Get Started</h2>
+      <div class="cta-command">curl -fsSL https://ast.codes/install.sh | sh</div>
+
+      <div class="download-buttons">
+        <a href="https://github.com/LofiTerminal/AiSeekTruth/releases" class="download-btn primary" target="_blank">
+          ⬇ Download for macOS
+        </a>
+        <a href="https://github.com/LofiTerminal/AiSeekTruth/releases" class="download-btn" target="_blank">
+          ⬇ Download for Windows
+        </a>
+        <a href="https://github.com/LofiTerminal/AiSeekTruth/releases" class="download-btn" target="_blank">
+          ⬇ Download for Linux
+        </a>
+      </div>
+
+      <div class="download-note">
+        Open-source and free forever. No subscriptions. No ads. No tracking.<br>
+        GPL-3.0 Licensed | v1.0.0 | 12MB Download
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <div class="footer-content">
+      <div class="footer-section">
+        <h4>Project</h4>
+        <ul>
+          <li><a href="https://github.com/LofiTerminal/AiSeekTruth" target="_blank">GitHub Repository</a></li>
+          <li><a href="https://github.com/LofiTerminal/AiSeekTruth/releases" target="_blank">Releases</a></li>
+          <li><a href="https://github.com/LofiTerminal/AiSeekTruth/issues" target="_blank">Report Issues</a></li>
+          <li><a href="https://github.com/LofiTerminal/AiSeekTruth/blob/main/LICENSE" target="_blank">License (GPL-3.0)</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-section">
+        <h4>Documentation</h4>
+        <ul>
+          <li><a href="https://github.com/LofiTerminal/AiSeekTruth#readme" target="_blank">Installation Guide</a></li>
+          <li><a href="https://github.com/LofiTerminal/AiSeekTruth#architecture" target="_blank">Architecture</a></li>
+          <li><a href="https://github.com/LofiTerminal/AiSeekTruth#encryption" target="_blank">Encryption Details</a></li>
+          <li><a href="https://github.com/LofiTerminal/AiSeekTruth#contributing" target="_blank">Contributing</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-section">
+        <h4>Community</h4>
+        <ul>
+          <li><a href="https://github.com/LofiTerminal/AiSeekTruth/discussions" target="_blank">Discussions</a></li>
+          <li><a href="https://github.com/LofiTerminal" target="_blank">LofiTerminal</a></li>
+          <li><a href="https://github.com/LofiTerminal/AiSeekTruth/stargazers" target="_blank">Star on GitHub</a></li>
+          <li><a href="https://github.com/LofiTerminal/AiSeekTruth/fork" target="_blank">Fork & Contribute</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-section">
+        <h4>Philosophy</h4>
+        <p>
+          Built for freedom fighters, whistleblowers, journalists, activists,
+          and anyone who believes communication is a human right, not a product.
+          No venture capital. No growth hacking. Just secure communication.
+        </p>
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      <p>
+        &copy; 2026 <a href="https://github.com/LofiTerminal" target="_blank">LofiTerminal</a> |
+        Licensed under <a href="https://www.gnu.org/licenses/gpl-3.0.en.html" target="_blank">GPL-3.0</a> |
+        Built with Electron, React, Gun.js & Signal Protocol
+      </p>
+      <p style="margin-top: 15px; color: var(--neon-cyan); font-size: 11px;">
+        "Privacy is not an option, and it shouldn't be the price we accept for just getting on the Internet." - Gary Kovacs
+      </p>
+    </div>
+  </footer>
+
+  <!-- Matrix Rain JavaScript -->
+  <script>
+    // Matrix Rain Effect
+    const canvas = document.getElementById('matrix-bg');
+    const ctx = canvas.getContext('2d');
+
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    // Characters to use (Japanese katakana + binary)
+    const chars = 'アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン01';
+    const charArray = chars.split('');
+
+    const fontSize = 14;
+    const columns = canvas.width / fontSize;
+
+    // Array to track y-position of each column
+    const drops = [];
+    for (let i = 0; i < columns; i++) {
+      drops[i] = Math.random() * -100;
+    }
+
+    function drawMatrix() {
+      // Black background with slight transparency for trail effect
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      ctx.fillStyle = '#00ff41';
+      ctx.font = fontSize + 'px monospace';
+
+      for (let i = 0; i < drops.length; i++) {
+        // Random character
+        const text = charArray[Math.floor(Math.random() * charArray.length)];
+
+        ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+
+        // Reset drop to top with random delay
+        if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
+          drops[i] = 0;
+        }
+
+        drops[i]++;
+      }
+    }
+
+    setInterval(drawMatrix, 35);
+
+    // Resize canvas on window resize
+    window.addEventListener('resize', () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    });
+
+    // Smooth scrolling for anchor links
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+      anchor.addEventListener('click', function (e) {
+        e.preventDefault();
+        const target = document.querySelector(this.getAttribute('href'));
+        if (target) {
+          target.scrollIntoView({ behavior: 'smooth' });
+        }
+      });
+    });
+  </script>
+</body>
+</html>
