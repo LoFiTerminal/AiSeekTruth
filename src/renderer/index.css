@@ -1,65 +1,57 @@
-/* ==================== CSS VARIABLES (ICQ-inspired) ==================== */
+/* ==================== ICQ-INSPIRED DESIGN ==================== */
+/* Clean, modern take on classic ICQ messenger */
+
 :root {
+  /* ICQ-inspired colors */
   --icq-blue: #3b7dd6;
-  --icq-light-blue: #5c9ce6;
+  --icq-blue-hover: #2d6bc7;
+  --icq-blue-light: #e8f2ff;
   --icq-green: #00cc66;
   --icq-orange: #ff9900;
   --icq-red: #ff3366;
+
+  /* Backgrounds */
   --bg-primary: #f5f7fa;
   --bg-secondary: #ffffff;
   --bg-sidebar: #e8ecf0;
-  --border-color: #d0d7de;
+  --bg-hover: #f0f3f6;
+
+  /* Borders & shadows */
+  --border-light: #d0d7de;
+  --border-medium: #9ca3af;
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08);
+  --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.12);
+
+  /* Text colors */
   --text-primary: #1f2937;
   --text-secondary: #6b7280;
   --text-dim: #9ca3af;
-  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
-  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+
+  /* Status colors */
+  --status-online: #00cc66;
+  --status-away: #ff9900;
+  --status-offline: #9ca3af;
 }
 
-/* ==================== RESET & BASE ==================== */
+/* ==================== RESET ==================== */
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
 }
 
-html,
-body {
+html, body, #root {
   width: 100%;
   height: 100%;
   overflow: hidden;
 }
 
 body {
-  background: var(--darker-bg);
+  background: var(--bg-primary);
   color: var(--text-primary);
-  font-family: 'Share Tech Mono', 'VT323', monospace;
-  cursor: crosshair;
-  position: relative;
-}
-
-/* Scanline effect */
-body::before {
-  content: '';
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  background: repeating-linear-gradient(
-    0deg,
-    rgba(0, 0, 0, 0.15),
-    rgba(0, 0, 0, 0.15) 1px,
-    transparent 1px,
-    transparent 2px
-  );
-  z-index: 9999;
-}
-
-#root {
-  width: 100%;
-  height: 100%;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
 }
 
 /* ==================== SCROLLBAR ==================== */
@@ -69,173 +61,64 @@ body::before {
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--dark-bg);
-  border: 1px solid var(--border-color);
+  background: var(--bg-sidebar);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--neon-green);
+  background: var(--border-medium);
   border-radius: 4px;
-  box-shadow: 0 0 10px var(--neon-green);
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--neon-cyan);
-  box-shadow: 0 0 15px var(--neon-cyan);
-}
-
-/* ==================== TYPOGRAPHY ==================== */
-h1,
-h2,
-h3,
-h4,
-h5,
-h6 {
-  font-family: 'VT323', monospace;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  text-shadow: 0 0 10px var(--neon-green);
-}
-
-/* ==================== ANIMATIONS ==================== */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-@keyframes slideIn {
-  from {
-    transform: translateY(-20px);
-    opacity: 0;
-  }
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
-}
-
-@keyframes slideInFromLeft {
-  from {
-    transform: translateX(-20px);
-    opacity: 0;
-  }
-  to {
-    transform: translateX(0);
-    opacity: 1;
-  }
-}
-
-@keyframes messageSlideIn {
-  from {
-    transform: translateY(10px);
-    opacity: 0;
-  }
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
-}
-
-@keyframes pulse {
-  0%, 100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.5;
-  }
-}
-
-@keyframes glow {
-  0%, 100% {
-    box-shadow: 0 0 5px var(--neon-green), 0 0 10px var(--neon-green);
-  }
-  50% {
-    box-shadow: 0 0 10px var(--neon-green), 0 0 20px var(--neon-green), 0 0 30px var(--neon-green);
-  }
-}
-
-@keyframes glowPulse {
-  0%, 100% {
-    text-shadow: 0 0 5px var(--neon-green);
-  }
-  50% {
-    text-shadow: 0 0 10px var(--neon-green), 0 0 20px var(--neon-green);
-  }
+  background: var(--text-secondary);
 }
 
 /* ==================== BUTTONS ==================== */
 button {
-  font-family: 'Share Tech Mono', monospace;
-  background: transparent;
-  color: var(--text-primary);
-  border: 2px solid var(--neon-green);
-  padding: 10px 20px;
-  cursor: crosshair;
-  text-transform: uppercase;
-  letter-spacing: 2px;
+  font-family: inherit;
   font-size: 14px;
-  transition: all 0.3s ease;
-  position: relative;
-  overflow: hidden;
-}
-
-button::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: var(--neon-green);
-  transition: left 0.3s ease;
-  z-index: -1;
-}
-
-button:hover::before {
-  left: 0;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 6px;
+  background: var(--icq-blue);
+  color: white;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-weight: 500;
 }
 
 button:hover {
-  color: var(--darker-bg);
-  box-shadow: 0 0 20px var(--neon-green);
+  background: var(--icq-blue-hover);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
 }
 
 button:disabled {
   opacity: 0.5;
   cursor: not-allowed;
-  border-color: var(--text-dim);
-}
-
-button:disabled::before {
-  display: none;
+  transform: none;
 }
 
 /* ==================== INPUTS ==================== */
-input,
-textarea {
-  font-family: 'Share Tech Mono', monospace;
-  background: var(--darker-bg);
-  color: var(--text-primary);
-  border: 2px solid var(--border-color);
-  padding: 12px 16px;
+input, textarea {
+  font-family: inherit;
   font-size: 14px;
-  outline: none;
-  transition: all 0.3s ease;
+  padding: 10px 12px;
+  border: 1px solid var(--border-light);
+  border-radius: 6px;
+  background: var(--bg-secondary);
+  color: var(--text-primary);
   width: 100%;
+  transition: border-color 0.2s;
 }
 
-input:focus,
-textarea:focus {
-  border-color: var(--neon-green);
-  box-shadow: 0 0 15px var(--neon-green);
+input:focus, textarea:focus {
+  outline: none;
+  border-color: var(--icq-blue);
+  box-shadow: 0 0 0 3px var(--icq-blue-light);
 }
 
-input::placeholder,
-textarea::placeholder {
+input::placeholder, textarea::placeholder {
   color: var(--text-dim);
 }
 
@@ -246,43 +129,40 @@ textarea::placeholder {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: radial-gradient(circle at center, var(--dark-bg), var(--darker-bg));
-  animation: fadeIn 0.5s ease;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
 }
 
 .setup-container {
-  width: 500px;
+  width: 450px;
   max-width: 90%;
-  background: var(--dark-bg);
-  border: 2px solid var(--neon-green);
+  background: var(--bg-secondary);
+  border-radius: 12px;
   padding: 40px;
-  box-shadow: 0 0 30px var(--neon-green);
-  animation: slideIn 0.5s ease;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
 }
 
 .setup-header {
   text-align: center;
-  margin-bottom: 40px;
+  margin-bottom: 30px;
 }
 
 .setup-icon {
   width: 60px;
   height: 60px;
-  color: var(--neon-green);
+  color: var(--icq-blue);
   margin: 0 auto 20px;
-  filter: drop-shadow(0 0 10px var(--neon-green));
 }
 
 .setup-title {
-  font-size: 32px;
-  margin-bottom: 10px;
-  animation: glowPulse 2s ease infinite;
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 8px;
 }
 
 .setup-subtitle {
   font-size: 14px;
   color: var(--text-secondary);
-  letter-spacing: 1px;
 }
 
 .setup-form {
@@ -294,27 +174,25 @@ textarea::placeholder {
 .form-group {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
 }
 
 .form-group label {
-  font-size: 12px;
-  text-transform: uppercase;
-  letter-spacing: 1px;
+  font-size: 13px;
+  font-weight: 500;
   color: var(--text-secondary);
 }
 
 .form-error {
-  color: var(--error-color);
+  color: var(--icq-red);
   font-size: 12px;
-  margin-top: 5px;
-  text-shadow: 0 0 5px var(--error-color);
+  margin-top: 4px;
 }
 
 .setup-footer {
   text-align: center;
-  margin-top: 30px;
-  font-size: 11px;
+  margin-top: 24px;
+  font-size: 12px;
   color: var(--text-dim);
   line-height: 1.6;
 }
@@ -324,115 +202,136 @@ textarea::placeholder {
   display: flex;
   width: 100%;
   height: 100%;
-  overflow: hidden;
+  background: var(--bg-secondary);
 }
 
-/* ==================== CONTACT LIST ==================== */
+/* ==================== CONTACT LIST (ICQ-style sidebar) ==================== */
 .contact-list {
-  width: 300px;
+  width: 280px;
   height: 100%;
-  background: var(--dark-bg);
-  border-right: 2px solid var(--border-color);
+  background: var(--bg-sidebar);
+  border-right: 1px solid var(--border-light);
   display: flex;
   flex-direction: column;
-  overflow: hidden;
-  animation: slideInFromLeft 0.5s ease;
 }
 
 .user-info {
-  padding: 20px;
-  border-bottom: 2px solid var(--border-color);
-  background: var(--darker-bg);
+  padding: 16px;
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border-light);
 }
 
 .user-name {
-  font-size: 18px;
-  font-weight: bold;
-  margin-bottom: 5px;
-  text-shadow: 0 0 10px var(--neon-green);
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 4px;
 }
 
 .user-key {
-  font-size: 10px;
+  font-size: 11px;
   color: var(--text-dim);
-  word-break: break-all;
+  font-family: 'Courier New', monospace;
 }
 
 .add-contact-btn {
-  width: 100%;
-  margin: 15px 0;
-  padding: 12px;
+  width: calc(100% - 32px);
+  margin: 16px;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
+  font-size: 13px;
 }
 
 .add-contact-form {
-  padding: 20px;
-  background: var(--darker-bg);
-  border-bottom: 2px solid var(--border-color);
-  animation: slideIn 0.3s ease;
+  padding: 16px;
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border-light);
 }
 
 .add-contact-form h3 {
-  font-size: 16px;
-  margin-bottom: 15px;
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 12px;
+  color: var(--text-primary);
 }
 
 .add-contact-actions {
   display: flex;
-  gap: 10px;
-  margin-top: 15px;
+  gap: 8px;
+  margin-top: 12px;
 }
 
 .add-contact-actions button {
   flex: 1;
   padding: 8px;
-  font-size: 12px;
+  font-size: 13px;
 }
 
 .contacts-scroll {
   flex: 1;
   overflow-y: auto;
-  padding: 10px;
+  padding: 8px;
 }
 
+/* ICQ-style compact contact item */
 .contact-item {
-  padding: 15px;
-  border: 1px solid var(--border-color);
-  margin-bottom: 10px;
-  cursor: crosshair;
-  transition: all 0.3s ease;
+  padding: 10px 12px;
+  margin-bottom: 2px;
+  cursor: pointer;
+  transition: background 0.15s;
   display: flex;
   align-items: center;
-  gap: 12px;
-  position: relative;
-  background: var(--darker-bg);
+  gap: 10px;
+  border-radius: 6px;
+  background: transparent;
 }
 
 .contact-item:hover {
-  border-color: var(--neon-green);
-  background: var(--dark-bg);
-  box-shadow: 0 0 15px var(--neon-green);
+  background: var(--bg-hover);
 }
 
 .contact-item.active {
-  border-color: var(--neon-green);
-  background: var(--dark-bg);
-  box-shadow: 0 0 20px var(--neon-green);
+  background: var(--icq-blue-light);
+  border-left: 3px solid var(--icq-blue);
 }
 
 .contact-avatar {
-  width: 40px;
-  height: 40px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
-  background: var(--dark-bg);
-  border: 2px solid var(--neon-green);
+  background: var(--bg-secondary);
+  border: 2px solid var(--border-light);
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  color: var(--text-secondary);
+  position: relative;
+}
+
+/* ICQ-style status indicator */
+.status-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  position: absolute;
+  bottom: -2px;
+  right: -2px;
+  border: 2px solid var(--bg-sidebar);
+}
+
+.status-dot.online {
+  background: var(--status-online);
+}
+
+.status-dot.offline {
+  background: var(--status-offline);
+}
+
+.status-dot.away {
+  background: var(--status-away);
 }
 
 .contact-info {
@@ -442,61 +341,31 @@ textarea::placeholder {
 
 .contact-name {
   font-size: 14px;
-  font-weight: bold;
-  margin-bottom: 4px;
+  font-weight: 500;
+  color: var(--text-primary);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 .contact-status {
-  font-size: 11px;
-  color: var(--text-dim);
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.status-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  display: inline-block;
-}
-
-.status-dot.online {
-  background: var(--success-color);
-  box-shadow: 0 0 8px var(--success-color);
-  animation: pulse 2s ease infinite;
-}
-
-.status-dot.offline {
-  background: var(--text-dim);
-}
-
-.status-dot.away {
-  background: var(--warning-color);
-  box-shadow: 0 0 8px var(--warning-color);
+  font-size: 12px;
+  color: var(--text-secondary);
 }
 
 .unread-badge {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  background: var(--neon-pink);
+  background: var(--icq-red);
   color: white;
   border-radius: 12px;
   padding: 2px 8px;
-  font-size: 10px;
-  font-weight: bold;
-  box-shadow: 0 0 10px var(--neon-pink);
+  font-size: 11px;
+  font-weight: 600;
 }
 
 .contacts-empty {
   text-align: center;
   padding: 40px 20px;
   color: var(--text-dim);
-  font-size: 14px;
 }
 
 /* ==================== CHAT WINDOW ==================== */
@@ -505,13 +374,13 @@ textarea::placeholder {
   display: flex;
   flex-direction: column;
   height: 100%;
-  background: var(--darker-bg);
+  background: var(--bg-secondary);
 }
 
 .chat-header {
-  padding: 20px;
-  border-bottom: 2px solid var(--border-color);
-  background: var(--dark-bg);
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border-light);
+  background: var(--bg-secondary);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -520,12 +389,14 @@ textarea::placeholder {
 .chat-contact-info {
   display: flex;
   align-items: center;
-  gap: 15px;
+  gap: 12px;
 }
 
 .chat-contact-details h2 {
-  font-size: 20px;
-  margin-bottom: 5px;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 2px;
 }
 
 .chat-contact-status {
@@ -539,27 +410,33 @@ textarea::placeholder {
 .encryption-indicator {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   font-size: 12px;
-  color: var(--neon-green);
-  padding: 8px 16px;
-  border: 1px solid var(--neon-green);
-  background: var(--darker-bg);
+  color: var(--status-online);
+  padding: 6px 12px;
+  background: rgba(0, 204, 102, 0.1);
+  border-radius: 12px;
+  font-weight: 500;
 }
 
 .messages-container {
   flex: 1;
   overflow-y: auto;
   padding: 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
+  background: var(--bg-primary);
 }
 
+/* ICQ-style simple message bubbles */
 .message {
   display: flex;
-  gap: 12px;
-  animation: messageSlideIn 0.3s ease;
+  gap: 10px;
+  margin-bottom: 16px;
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(5px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 .message.from-me {
@@ -567,26 +444,23 @@ textarea::placeholder {
 }
 
 .message-avatar {
-  width: 36px;
-  height: 36px;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
-  background: var(--dark-bg);
-  border: 2px solid var(--neon-green);
+  background: var(--bg-sidebar);
+  border: 1px solid var(--border-light);
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-}
-
-.message.from-me .message-avatar {
-  border-color: var(--neon-pink);
+  color: var(--text-secondary);
 }
 
 .message-content {
   max-width: 60%;
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: 4px;
 }
 
 .message.from-me .message-content {
@@ -594,41 +468,53 @@ textarea::placeholder {
 }
 
 .message-bubble {
-  padding: 12px 16px;
-  border-radius: 8px;
+  padding: 10px 14px;
+  border-radius: 16px;
   word-wrap: break-word;
   position: relative;
+  box-shadow: var(--shadow-sm);
 }
 
+/* ICQ-style message bubbles */
 .message.from-me .message-bubble {
-  background: linear-gradient(135deg, var(--neon-pink), var(--neon-purple));
+  background: var(--icq-blue);
   color: white;
-  border: none;
-  box-shadow: 0 0 20px var(--neon-pink);
+  border-bottom-right-radius: 4px;
 }
 
 .message.from-them .message-bubble {
-  background: var(--dark-bg);
-  border: 2px solid var(--neon-purple);
+  background: var(--bg-secondary);
   color: var(--text-primary);
-  box-shadow: 0 0 15px var(--neon-purple);
+  border: 1px solid var(--border-light);
+  border-bottom-left-radius: 4px;
+}
+
+/* Lock icon in message bubble */
+.message-bubble::after {
+  content: '🔒';
+  position: absolute;
+  bottom: 4px;
+  right: 8px;
+  font-size: 10px;
+  opacity: 0.5;
 }
 
 .message-meta {
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: 10px;
+  gap: 6px;
+  font-size: 11px;
   color: var(--text-dim);
+  padding: 0 4px;
 }
 
 .message-time {
-  font-size: 10px;
+  font-size: 11px;
 }
 
 .message-status {
-  font-size: 10px;
-  color: var(--neon-green);
+  font-size: 11px;
+  color: var(--status-online);
 }
 
 .chat-empty {
@@ -638,119 +524,67 @@ textarea::placeholder {
   align-items: center;
   justify-content: center;
   color: var(--text-dim);
-  gap: 20px;
+  gap: 16px;
 }
 
 .chat-empty-icon {
-  width: 80px;
-  height: 80px;
+  width: 64px;
+  height: 64px;
   opacity: 0.3;
-}
-
-.chat-empty p {
-  font-size: 16px;
-  letter-spacing: 2px;
 }
 
 /* ==================== MESSAGE INPUT ==================== */
 .message-input {
-  padding: 20px;
-  border-top: 2px solid var(--border-color);
-  background: var(--dark-bg);
+  padding: 16px 20px;
+  border-top: 1px solid var(--border-light);
+  background: var(--bg-secondary);
   display: flex;
-  gap: 15px;
+  gap: 12px;
   align-items: flex-end;
 }
 
 .message-input textarea {
   flex: 1;
-  min-height: 50px;
+  min-height: 42px;
   max-height: 120px;
   resize: none;
-  border-radius: 8px;
-  font-size: 14px;
-  line-height: 1.5;
+  border-radius: 20px;
+  padding: 10px 16px;
+  line-height: 1.4;
 }
 
 .send-button {
-  padding: 12px 20px;
+  padding: 10px 20px;
+  border-radius: 20px;
   display: flex;
   align-items: center;
-  gap: 8px;
-  border-radius: 8px;
-  flex-shrink: 0;
+  gap: 6px;
+  font-weight: 600;
 }
 
-.send-button:disabled {
-  opacity: 0.3;
-}
-
-/* ==================== LOADING SPINNER ==================== */
+/* ==================== UTILITY ==================== */
 .loading-spinner {
   display: inline-block;
   width: 16px;
   height: 16px;
-  border: 2px solid var(--border-color);
-  border-top-color: var(--neon-green);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: white;
   border-radius: 50%;
-  animation: spin 0.8s linear infinite;
+  animation: spin 0.6s linear infinite;
 }
 
 @keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
+  to { transform: rotate(360deg); }
 }
 
-/* ==================== UTILITY CLASSES ==================== */
 .text-center {
   text-align: center;
-}
-
-.mt-10 {
-  margin-top: 10px;
-}
-
-.mt-20 {
-  margin-top: 20px;
-}
-
-.mb-10 {
-  margin-bottom: 10px;
-}
-
-.mb-20 {
-  margin-bottom: 20px;
-}
-
-.flex {
-  display: flex;
-}
-
-.flex-col {
-  flex-direction: column;
-}
-
-.items-center {
-  align-items: center;
-}
-
-.justify-center {
-  justify-content: center;
-}
-
-.gap-10 {
-  gap: 10px;
-}
-
-.gap-20 {
-  gap: 20px;
 }
 
 /* ==================== RESPONSIVE ==================== */
 @media (max-width: 768px) {
   .contact-list {
-    width: 250px;
+    width: 240px;
   }
 
   .setup-container {
@@ -758,6 +592,6 @@ textarea::placeholder {
   }
 
   .message-content {
-    max-width: 80%;
+    max-width: 75%;
   }
 }
