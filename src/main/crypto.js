@@ -52,17 +52,23 @@ async function createIdentity(username, password) {
 async function encryptIdentityForStorage(identity, password) {
   await ensureSodiumReady();
 
-  // Generate random salt for Argon2id
-  const salt = sodium.randombytes_buf(sodium.crypto_pwhash_SALTBYTES);
+  // Generate random salt for Argon2id (using hardcoded constant since libsodium constants aren't exported)
+  const CRYPTO_PWHASH_SALTBYTES = 16; // Standard libsodium constant
+  const salt = sodium.randombytes_buf(CRYPTO_PWHASH_SALTBYTES);
 
-  // Derive key from password using Argon2id
+  // Derive key from password using Argon2id (using hardcoded constants)
+  const CRYPTO_SECRETBOX_KEYBYTES = 32;
+  const CRYPTO_PWHASH_OPSLIMIT_INTERACTIVE = 2;
+  const CRYPTO_PWHASH_MEMLIMIT_INTERACTIVE = 67108864;
+  const CRYPTO_PWHASH_ALG_ARGON2ID13 = 2;
+
   const key = sodium.crypto_pwhash(
-    sodium.crypto_secretbox_KEYBYTES,
+    CRYPTO_SECRETBOX_KEYBYTES,
     password,
     salt,
-    sodium.crypto_pwhash_OPSLIMIT_INTERACTIVE,
-    sodium.crypto_pwhash_MEMLIMIT_INTERACTIVE,
-    sodium.crypto_pwhash_ALG_ARGON2ID13
+    CRYPTO_PWHASH_OPSLIMIT_INTERACTIVE,
+    CRYPTO_PWHASH_MEMLIMIT_INTERACTIVE,
+    CRYPTO_PWHASH_ALG_ARGON2ID13
   );
 
   // Prepare data to encrypt (private keys only)
@@ -72,7 +78,7 @@ async function encryptIdentityForStorage(identity, password) {
   });
 
   // Generate random nonce
-  const nonce = sodium.randombytes_buf(sodium.crypto_secretbox_NONCEBYTES);
+  const nonce = sodium.randombytes_buf(24);
 
   // Encrypt using XSalsa20-Poly1305
   const ciphertext = sodium.crypto_secretbox_easy(dataToEncrypt, nonce, key);
@@ -161,7 +167,7 @@ async function encryptMessage(plaintext, sharedSecret) {
   await ensureSodiumReady();
 
   // Generate random nonce
-  const nonce = sodium.randombytes_buf(sodium.crypto_secretbox_NONCEBYTES);
+  const nonce = sodium.randombytes_buf(24);
 
   // Encrypt message
   const ciphertext = sodium.crypto_secretbox_easy(plaintext, nonce, sharedSecret);
