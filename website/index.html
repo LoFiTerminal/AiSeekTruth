@@ -849,7 +849,7 @@
         <li><a href="#specs">Technical Specs</a></li>
         <li><a href="#architecture">Architecture</a></li>
         <li><a href="#download">Download</a></li>
-        <li><a href="https://github.com">GitHub</a></li>
+        <li><a href="https://github.com/LoFiTerminal/AiSeekTruth">GitHub</a></li>
       </ul>
     </nav>
   </header>
@@ -857,18 +857,18 @@
   <!-- Hero -->
   <section class="hero">
     <div class="hero-header">
-      <h1>Decentralized Encrypted Messaging</h1>
+      <h1>Truly Decentralized Encrypted Messaging</h1>
       <p>
-        Peer-to-peer communication platform using Signal Protocol encryption and Gun.js mesh networking.
-        No central servers. No metadata collection. No backdoors.
+        Self-sustaining peer-to-peer mesh network with Signal Protocol encryption. Every app acts as both client and relay,
+        creating a censorship-resistant network that survives without central servers. No metadata collection. No backdoors.
       </p>
       <div class="tech-badges">
+        <span class="badge">Hybrid Relay Mode</span>
         <span class="badge">Signal Protocol</span>
-        <span class="badge">Gun.js P2P</span>
-        <span class="badge">Ed25519 / X25519</span>
-        <span class="badge">XSalsa20-Poly1305</span>
-        <span class="badge">Electron + React</span>
-        <span class="badge">GPL-3.0</span>
+        <span class="badge">Gun.js Mesh</span>
+        <span class="badge">Group Chats</span>
+        <span class="badge">WebRTC P2P</span>
+        <span class="badge">Multicast Discovery</span>
       </div>
     </div>
 
@@ -965,24 +965,26 @@
       <div class="spec-card">
         <h3>🔐 Encryption</h3>
         <ul>
-          <li>Signal Protocol (Double Ratchet)</li>
+          <li>Signal Protocol implementation</li>
           <li>Ed25519 for signing (256-bit)</li>
           <li>X25519 for ECDH key exchange</li>
-          <li>XSalsa20-Poly1305 for message encryption</li>
-          <li>Argon2id for key derivation</li>
-          <li>Forward secrecy enabled</li>
+          <li>XSalsa20-Poly1305 authenticated encryption</li>
+          <li>Argon2id for password hashing</li>
+          <li>End-to-end encryption for all messages</li>
         </ul>
       </div>
 
       <div class="spec-card">
-        <h3>🌐 Network</h3>
+        <h3>🌐 Network (Hybrid Relay Mode)</h3>
         <ul>
-          <li>Gun.js distributed mesh network</li>
-          <li>WebRTC for P2P connections</li>
-          <li>WebSocket fallback support</li>
-          <li>Distributed hash table (DHT)</li>
-          <li>No central servers required</li>
-          <li>Self-hosted relay options</li>
+          <li><strong>Every app = Client + Relay</strong></li>
+          <li>localStorage + radisk enabled (stores & forwards)</li>
+          <li>Multicast discovery (finds local peers)</li>
+          <li>WebRTC for direct P2P connections</li>
+          <li>100MB max relay storage per app</li>
+          <li>Self-sustaining mesh network</li>
+          <li>Survives external relay failures</li>
+          <li>Censorship resistant architecture</li>
         </ul>
       </div>
 
@@ -1032,6 +1034,43 @@
           <li>Native system integration</li>
           <li>~50MB download size</li>
         </ul>
+      </div>
+    </div>
+
+    <!-- Hybrid Relay Highlight -->
+    <div style="background: var(--bg-secondary); border: 2px solid var(--success); border-radius: 8px; padding: 2rem; margin: 3rem 0;">
+      <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
+        <div style="font-size: 2rem;">🌐</div>
+        <h3 style="font-size: 1.5rem; color: var(--success); margin: 0;">Hybrid Relay Mode: Truly Decentralized</h3>
+      </div>
+      <p style="color: var(--text-secondary); margin-bottom: 1.5rem; font-size: 1rem; line-height: 1.8;">
+        Unlike traditional messaging apps that rely on central servers, AiSeekTruth transforms every installation into both a client and a relay.
+        This creates a self-sustaining mesh network where users strengthen the system simply by participating.
+      </p>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem;">
+        <div>
+          <div style="color: var(--success); font-weight: 600; margin-bottom: 0.5rem;">✓ Self-Sustaining</div>
+          <div style="color: var(--text-secondary); font-size: 0.9rem;">Network grows stronger with each user. No company infrastructure required.</div>
+        </div>
+        <div>
+          <div style="color: var(--success); font-weight: 600; margin-bottom: 0.5rem;">✓ Censorship Resistant</div>
+          <div style="color: var(--text-secondary); font-size: 0.9rem;">Impossible to shut down all user relays. Messages find alternate routes automatically.</div>
+        </div>
+        <div>
+          <div style="color: var(--success); font-weight: 600; margin-bottom: 0.5rem;">✓ Privacy Preserved</div>
+          <div style="color: var(--text-secondary); font-size: 0.9rem;">Relay apps store only encrypted envelopes. Messages remain end-to-end encrypted.</div>
+        </div>
+        <div>
+          <div style="color: var(--success); font-weight: 600; margin-bottom: 0.5rem;">✓ Local Discovery</div>
+          <div style="color: var(--text-secondary); font-size: 0.9rem;">Multicast finds nearby users on same WiFi. Chat without internet connection.</div>
+        </div>
+      </div>
+      <div style="margin-top: 1.5rem; padding: 1rem; background: var(--code-bg); border-radius: 4px; border-left: 3px solid var(--success);">
+        <div style="font-family: 'Courier New', monospace; font-size: 0.85rem; color: var(--text-secondary);">
+          <strong style="color: var(--text-primary);">Network Topology:</strong><br>
+          <span style="color: var(--warning);">Before:</span> 100 users → 3 servers → 100 users <span style="color: #ef4444;">(centralized)</span><br>
+          <span style="color: var(--success);">After:</span> 103 relay points (3 external + 100 user apps) <span style="color: var(--success);">(97% decentralized)</span>
+        </div>
       </div>
     </div>
 
@@ -1105,7 +1144,7 @@
           </div>
           <div class="layer-box">
             <strong>P2P Network</strong>
-            <span>Gun.js Integration</span>
+            <span>Hybrid Relay Mode</span>
           </div>
         </div>
       </div>
@@ -1133,15 +1172,15 @@
         <div class="layer-boxes">
           <div class="layer-box">
             <strong>WebRTC</strong>
-            <span>P2P Transport</span>
+            <span>Direct P2P</span>
           </div>
           <div class="layer-box">
-            <strong>WebSocket</strong>
-            <span>Relay Fallback</span>
+            <strong>Multicast</strong>
+            <span>Local Discovery</span>
           </div>
           <div class="layer-box">
-            <strong>Gun.js DHT</strong>
-            <span>Peer Discovery</span>
+            <strong>Gun.js Mesh</strong>
+            <span>Relay Network</span>
           </div>
         </div>
       </div>
