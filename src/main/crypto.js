@@ -1,4 +1,4 @@
-const sodium = require('libsodium-wrappers');
+const sodium = require('libsodium-wrappers-sumo');
 
 // Promise to track libsodium initialization
 let sodiumReadyPromise = null;
@@ -8,6 +8,12 @@ async function ensureSodiumReady() {
     sodiumReadyPromise = sodium.ready;
   }
   await sodiumReadyPromise;
+
+  // Debug: check what's available
+  console.log('=== Libsodium Debug ===');
+  console.log('Has crypto_pwhash?', typeof sodium.crypto_pwhash);
+  console.log('Has crypto_secretbox_easy?', typeof sodium.crypto_secretbox_easy);
+  console.log('All crypto_* functions:', Object.keys(sodium).filter(k => k.startsWith('crypto_')).slice(0, 10));
 }
 
 /**

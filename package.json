@@ -21,13 +21,13 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "better-sqlite3": "^11.7.0",
+    "gun": "^0.2020.1240",
+    "libsodium-wrappers-sumo": "^0.7.13",
+    "lucide-react": "^0.303.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "zustand": "^4.4.7",
-    "gun": "^0.2020.1240",
-    "libsodium-wrappers": "^0.7.13",
-    "better-sqlite3": "^11.7.0",
-    "lucide-react": "^0.303.0"
+    "zustand": "^4.4.7"
   },
   "devDependencies": {
     "@vitejs/plugin-react": "^4.2.1",
