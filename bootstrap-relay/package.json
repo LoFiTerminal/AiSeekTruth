@@ -1,0 +1,15 @@
+{
+  "name": "aiseektruth-bootstrap-relay",
+  "version": "1.0.0",
+  "description": "Bootstrap relay for AiSeekTruth P2P network",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "engines": {
+    "node": ">=16.x"
+  },
+  "dependencies": {
+    "gun": "^0.2020.1240"
+  }
+}
