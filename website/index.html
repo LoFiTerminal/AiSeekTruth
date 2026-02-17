@@ -3,8 +3,14 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AiSeekTruth - Decentralized Encrypted Messaging</title>
-  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <title>AiSeekTruth - Open Source P2P Encrypted Messaging</title>
+  <meta name="description" content="100% open source, fully decentralized P2P messaging with Signal Protocol encryption. Every app acts as both client and relay. No central servers. GPL-3.0 licensed.">
+  <meta name="keywords" content="decentralized messaging, p2p chat, encrypted messaging, open source, signal protocol, gun.js, e2e encryption">
+  <meta property="og:title" content="AiSeekTruth - Open Source P2P Encrypted Messaging">
+  <meta property="og:description" content="100% open source, fully decentralized P2P messaging. Every app = Client + Relay. No central servers.">
+  <meta property="og:type" content="website">
+  <link rel="icon" type="image/svg+xml" href="ast-favicon.svg">
+  <link rel="apple-touch-icon" href="ast-icon-256.svg">
   <style>
     * {
       margin: 0;
@@ -19,11 +25,13 @@
       --border: #2a3244;
       --text-primary: #e4e8f0;
       --text-secondary: #8892a6;
-      --accent: #4a90e2;
-      --accent-dim: #2d5a8f;
-      --success: #10b981;
+      --accent: #00ff41;
+      --terminal-green: #00ff41;
+      --accent-dim: #00aa2b;
+      --success: #00ff41;
       --warning: #f59e0b;
       --code-bg: #0d1117;
+      --cyan: #00ffff;
     }
 
     body {
@@ -837,41 +845,20 @@
   <header>
     <nav>
       <div class="logo">
-        <div class="logo-icon">
-          <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path class="logo-shield" d="M12 2L4 6V12C4 16.5 7.5 20.5 12 22C16.5 20.5 20 16.5 20 12V6L12 2Z"/>
-            <circle class="logo-lock" cx="12" cy="13" r="3"/>
-          </svg>
-        </div>
-        AiSeekTruth
+        <img src="../icons/ast-icon-512.svg" alt="AST" style="width: 32px; height: 32px; margin-right: 0.5rem;" />
+        <span style="font-family: 'Courier New', monospace; color: var(--terminal-green);">[AST]</span>
+        <span style="margin-left: 0.5rem;">AiSeekTruth</span>
       </div>
       <ul class="nav-links">
-        <li><a href="#specs">Technical Specs</a></li>
-        <li><a href="#architecture">Architecture</a></li>
+        <li><a href="#specs">Tech Stack</a></li>
         <li><a href="#download">Download</a></li>
-        <li><a href="https://github.com/LoFiTerminal/AiSeekTruth">GitHub</a></li>
+        <li><a href="https://github.com/LoFiTerminal/AiSeekTruth" style="color: var(--terminal-green); font-weight: 700; padding: 0.5rem 1rem; background: rgba(0, 255, 65, 0.1); border-radius: 4px; border: 1px solid var(--terminal-green);">⭐ GitHub</a></li>
       </ul>
     </nav>
   </header>
 
   <!-- Hero -->
-  <section class="hero">
-    <div class="hero-header">
-      <h1>Truly Decentralized Encrypted Messaging</h1>
-      <p>
-        Self-sustaining peer-to-peer mesh network with Signal Protocol encryption. Every app acts as both client and relay,
-        creating a censorship-resistant network that survives without central servers. No metadata collection. No backdoors.
-      </p>
-      <div class="tech-badges">
-        <span class="badge">Hybrid Relay Mode</span>
-        <span class="badge">Signal Protocol</span>
-        <span class="badge">Gun.js Mesh</span>
-        <span class="badge">Group Chats</span>
-        <span class="badge">WebRTC P2P</span>
-        <span class="badge">Multicast Discovery</span>
-      </div>
-    </div>
-
+  <section class="hero" style="padding-top: 2rem;">
     <!-- App Interface -->
     <div class="app-container">
       <div class="app-titlebar">
@@ -952,334 +939,212 @@
         </div>
       </div>
     </div>
+
+    <!-- Hero Text Below App -->
+    <div style="text-align: center; margin-top: 2rem; padding: 1.5rem; background: rgba(0, 255, 65, 0.05); border: 2px solid var(--terminal-green); border-radius: 8px;">
+      <h1 style="font-size: 1.8rem; margin-bottom: 0.75rem;">Open Source P2P Encrypted Messaging</h1>
+      <p style="font-size: 1rem; color: var(--text-secondary); margin-bottom: 1rem;">
+        Every app = Client + Relay • No central servers • No surveillance
+      </p>
+      <a href="https://github.com/LoFiTerminal/AiSeekTruth" style="display: inline-block; padding: 0.75rem 2rem; background: var(--terminal-green); color: #000; border-radius: 6px; text-decoration: none; font-weight: 700; font-size: 0.95rem; box-shadow: 0 0 20px rgba(0, 255, 65, 0.3);">
+        ⭐ View on GitHub • 100% Open Source
+      </a>
+    </div>
+  </section>
+
+  <!-- Key Features -->
+  <section class="specs" style="padding: 3rem 2rem;">
+    <div style="max-width: 1400px; margin: 0 auto;">
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem;">
+        <div style="text-align: center; padding: 1.5rem;">
+          <div style="font-size: 3rem; margin-bottom: 0.5rem;">🔒</div>
+          <h3 style="color: var(--terminal-green); margin-bottom: 0.5rem; font-family: 'Courier New', monospace;">Signal Protocol</h3>
+          <p style="color: var(--text-secondary); font-size: 0.9rem;">End-to-end encryption</p>
+        </div>
+        <div style="text-align: center; padding: 1.5rem;">
+          <div style="font-size: 3rem; margin-bottom: 0.5rem;">🌐</div>
+          <h3 style="color: var(--terminal-green); margin-bottom: 0.5rem; font-family: 'Courier New', monospace;">P2P Mesh</h3>
+          <p style="color: var(--text-secondary); font-size: 0.9rem;">Every app = relay</p>
+        </div>
+        <div style="text-align: center; padding: 1.5rem;">
+          <div style="font-size: 3rem; margin-bottom: 0.5rem;">📖</div>
+          <h3 style="color: var(--terminal-green); margin-bottom: 0.5rem; font-family: 'Courier New', monospace;">Open Source</h3>
+          <p style="color: var(--text-secondary); font-size: 0.9rem;">GPL-3.0 licensed</p>
+        </div>
+        <div style="text-align: center; padding: 1.5rem;">
+          <div style="font-size: 3rem; margin-bottom: 0.5rem;">🎨</div>
+          <h3 style="color: var(--terminal-green); margin-bottom: 0.5rem; font-family: 'Courier New', monospace;">Retro UI</h3>
+          <p style="color: var(--text-secondary); font-size: 0.9rem;">Terminal aesthetic</p>
+        </div>
+        <div style="text-align: center; padding: 1.5rem;">
+          <div style="font-size: 3rem; margin-bottom: 0.5rem;">💬</div>
+          <h3 style="color: var(--terminal-green); margin-bottom: 0.5rem; font-family: 'Courier New', monospace;">Groups</h3>
+          <p style="color: var(--text-secondary); font-size: 0.9rem;">Encrypted group chats</p>
+        </div>
+        <div style="text-align: center; padding: 1.5rem;">
+          <div style="font-size: 3rem; margin-bottom: 0.5rem;">🚫</div>
+          <h3 style="color: var(--terminal-green); margin-bottom: 0.5rem; font-family: 'Courier New', monospace;">No Servers</h3>
+          <p style="color: var(--text-secondary); font-size: 0.9rem;">Fully decentralized</p>
+        </div>
+      </div>
+    </div>
   </section>
 
   <!-- Technical Specs -->
-  <section id="specs" class="specs">
+  <section id="specs" class="specs" style="background: var(--bg-secondary);">
     <div class="section-header">
-      <h2>Technical Specifications</h2>
-      <p>Implementation details and cryptographic protocols</p>
+      <h2>Tech Stack</h2>
+      <p><a href="https://github.com/LoFiTerminal/AiSeekTruth" style="color: var(--terminal-green); text-decoration: none; font-weight: 600;">Inspect the code on GitHub →</a></p>
     </div>
 
     <div class="specs-grid">
       <div class="spec-card">
         <h3>🔐 Encryption</h3>
         <ul>
-          <li>Signal Protocol implementation</li>
-          <li>Ed25519 for signing (256-bit)</li>
-          <li>X25519 for ECDH key exchange</li>
-          <li>XSalsa20-Poly1305 authenticated encryption</li>
-          <li>Argon2id for password hashing</li>
-          <li>End-to-end encryption for all messages</li>
+          <li>Signal Protocol</li>
+          <li>Ed25519 signing</li>
+          <li>X25519 ECDH</li>
+          <li>XSalsa20-Poly1305</li>
+          <li>Argon2id hashing</li>
         </ul>
       </div>
 
       <div class="spec-card">
-        <h3>🌐 Network (Hybrid Relay Mode)</h3>
+        <h3>🌐 Network</h3>
         <ul>
-          <li><strong>Every app = Client + Relay</strong></li>
-          <li>localStorage + radisk enabled (stores & forwards)</li>
-          <li>Multicast discovery (finds local peers)</li>
-          <li>WebRTC for direct P2P connections</li>
-          <li>100MB max relay storage per app</li>
-          <li>Self-sustaining mesh network</li>
-          <li>Survives external relay failures</li>
-          <li>Censorship resistant architecture</li>
+          <li><strong>Hybrid Relay Mode</strong></li>
+          <li>Gun.js P2P mesh</li>
+          <li>WebRTC connections</li>
+          <li>Multicast discovery</li>
+          <li>No central servers</li>
         </ul>
       </div>
 
       <div class="spec-card">
-        <h3>👥 Group Messaging</h3>
+        <h3>💾 Platform</h3>
         <ul>
-          <li>Pairwise encryption per member</li>
-          <li>Role-based access (admin/member)</li>
-          <li>Member management (add/remove)</li>
-          <li>No shared group secrets</li>
-          <li>Encrypted member lists</li>
-          <li>Admin-only member control</li>
-        </ul>
-      </div>
-
-      <div class="spec-card">
-        <h3>💾 Storage</h3>
-        <ul>
-          <li>SQLite local database</li>
-          <li>Encrypted at rest</li>
-          <li>No cloud synchronization</li>
-          <li>User-controlled data</li>
-          <li>Export/import functionality</li>
-          <li>Automatic cleanup options</li>
-        </ul>
-      </div>
-
-      <div class="spec-card">
-        <h3>🔑 Identity</h3>
-        <ul>
-          <li>Cryptographic keypair-based identity</li>
-          <li>No phone number required</li>
-          <li>No email verification</li>
-          <li>Username + public key</li>
-          <li>Self-sovereign identity</li>
-          <li>Password-encrypted private keys</li>
-        </ul>
-      </div>
-
-      <div class="spec-card">
-        <h3>⚙️ Platform</h3>
-        <ul>
-          <li>Electron 28+ framework</li>
-          <li>React 18 frontend</li>
-          <li>Node.js backend services</li>
-          <li>Cross-platform (Win/Mac/Linux)</li>
-          <li>Native system integration</li>
-          <li>~50MB download size</li>
+          <li>Electron 28</li>
+          <li>React 18</li>
+          <li>SQLite storage</li>
+          <li>Win/Mac/Linux</li>
+          <li>~100MB install</li>
         </ul>
       </div>
     </div>
 
-    <!-- Hybrid Relay Highlight -->
-    <div style="background: var(--bg-secondary); border: 2px solid var(--success); border-radius: 8px; padding: 2rem; margin: 3rem 0;">
-      <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
-        <div style="font-size: 2rem;">🌐</div>
-        <h3 style="font-size: 1.5rem; color: var(--success); margin: 0;">Hybrid Relay Mode: Truly Decentralized</h3>
-      </div>
-      <p style="color: var(--text-secondary); margin-bottom: 1.5rem; font-size: 1rem; line-height: 1.8;">
-        Unlike traditional messaging apps that rely on central servers, AiSeekTruth transforms every installation into both a client and a relay.
-        This creates a self-sustaining mesh network where users strengthen the system simply by participating.
-      </p>
-      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem;">
+    <!-- Decentralization Highlight -->
+    <div style="background: var(--bg-secondary); border: 2px solid var(--terminal-green); border-radius: 8px; padding: 2rem; margin: 2rem 0; box-shadow: 0 0 40px rgba(0, 255, 65, 0.2);">
+      <h3 style="font-size: 1.3rem; color: var(--terminal-green); margin-bottom: 1.5rem; font-family: 'Courier New', monospace; text-align: center;">
+        🌐 Every App = Client + Relay
+      </h3>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; text-align: center;">
         <div>
-          <div style="color: var(--success); font-weight: 600; margin-bottom: 0.5rem;">✓ Self-Sustaining</div>
-          <div style="color: var(--text-secondary); font-size: 0.9rem;">Network grows stronger with each user. No company infrastructure required.</div>
+          <div style="color: var(--terminal-green); font-weight: 700; margin-bottom: 0.5rem; font-family: 'Courier New', monospace;">Self-Sustaining</div>
+          <div style="color: var(--text-secondary); font-size: 0.85rem;">No servers needed</div>
         </div>
         <div>
-          <div style="color: var(--success); font-weight: 600; margin-bottom: 0.5rem;">✓ Censorship Resistant</div>
-          <div style="color: var(--text-secondary); font-size: 0.9rem;">Impossible to shut down all user relays. Messages find alternate routes automatically.</div>
+          <div style="color: var(--terminal-green); font-weight: 700; margin-bottom: 0.5rem; font-family: 'Courier New', monospace;">Censorship Proof</div>
+          <div style="color: var(--text-secondary); font-size: 0.85rem;">Can't shut it down</div>
         </div>
         <div>
-          <div style="color: var(--success); font-weight: 600; margin-bottom: 0.5rem;">✓ Privacy Preserved</div>
-          <div style="color: var(--text-secondary); font-size: 0.9rem;">Relay apps store only encrypted envelopes. Messages remain end-to-end encrypted.</div>
+          <div style="color: var(--terminal-green); font-weight: 700; margin-bottom: 0.5rem; font-family: 'Courier New', monospace;">Always Encrypted</div>
+          <div style="color: var(--text-secondary); font-size: 0.85rem;">E2E everywhere</div>
         </div>
         <div>
-          <div style="color: var(--success); font-weight: 600; margin-bottom: 0.5rem;">✓ Local Discovery</div>
-          <div style="color: var(--text-secondary); font-size: 0.9rem;">Multicast finds nearby users on same WiFi. Chat without internet connection.</div>
-        </div>
-      </div>
-      <div style="margin-top: 1.5rem; padding: 1rem; background: var(--code-bg); border-radius: 4px; border-left: 3px solid var(--success);">
-        <div style="font-family: 'Courier New', monospace; font-size: 0.85rem; color: var(--text-secondary);">
-          <strong style="color: var(--text-primary);">Network Topology:</strong><br>
-          <span style="color: var(--warning);">Before:</span> 100 users → 3 servers → 100 users <span style="color: #ef4444;">(centralized)</span><br>
-          <span style="color: var(--success);">After:</span> 103 relay points (3 external + 100 user apps) <span style="color: var(--success);">(97% decentralized)</span>
-        </div>
-      </div>
-    </div>
-
-    <!-- Code Example -->
-    <div class="code-section">
-      <div class="code-header">
-        <span class="code-title">Message Encryption Flow</span>
-        <span class="code-title">src/main/crypto.js</span>
-      </div>
-      <pre><span class="code-comment">// Generate ephemeral keypair for ECDH</span>
-<span class="code-keyword">const</span> ephemeralKeyPair = <span class="code-function">crypto_box_keypair</span>();
-
-<span class="code-comment">// Derive shared secret using X25519</span>
-<span class="code-keyword">const</span> sharedSecret = <span class="code-function">crypto_scalarmult</span>(
-  ephemeralKeyPair.secretKey,
-  recipientPublicKey
-);
-
-<span class="code-comment">// Encrypt message with XSalsa20-Poly1305</span>
-<span class="code-keyword">const</span> nonce = <span class="code-function">crypto_box_random_nonce</span>();
-<span class="code-keyword">const</span> ciphertext = <span class="code-function">crypto_box</span>(
-  messageBuffer,
-  nonce,
-  recipientPublicKey,
-  senderSecretKey
-);
-
-<span class="code-comment">// Sign with Ed25519 for authenticity</span>
-<span class="code-keyword">const</span> signature = <span class="code-function">crypto_sign_detached</span>(ciphertext, signingKey);
-
-<span class="code-keyword">return</span> { ciphertext, nonce, signature };</pre>
-    </div>
-  </section>
-
-  <!-- Architecture -->
-  <section id="architecture" class="architecture">
-    <div class="section-header">
-      <h2>System Architecture</h2>
-      <p>Layered architecture ensuring security and decentralization</p>
-    </div>
-
-    <div class="arch-diagram">
-      <div class="arch-layer">
-        <div class="layer-title">Application Layer</div>
-        <div class="layer-boxes">
-          <div class="layer-box">
-            <strong>React UI</strong>
-            <span>Renderer Process</span>
-          </div>
-          <div class="layer-box">
-            <strong>Zustand Store</strong>
-            <span>State Management</span>
-          </div>
-          <div class="layer-box">
-            <strong>IPC Bridge</strong>
-            <span>Secure Context</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="arch-layer">
-        <div class="layer-title">Service Layer</div>
-        <div class="layer-boxes">
-          <div class="layer-box">
-            <strong>Messaging</strong>
-            <span>Message Handling</span>
-          </div>
-          <div class="layer-box">
-            <strong>Crypto</strong>
-            <span>Encryption/Signing</span>
-          </div>
-          <div class="layer-box">
-            <strong>P2P Network</strong>
-            <span>Hybrid Relay Mode</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="arch-layer">
-        <div class="layer-title">Storage Layer</div>
-        <div class="layer-boxes">
-          <div class="layer-box">
-            <strong>SQLite</strong>
-            <span>Local Database</span>
-          </div>
-          <div class="layer-box">
-            <strong>Key Store</strong>
-            <span>Encrypted Keys</span>
-          </div>
-          <div class="layer-box">
-            <strong>Message Store</strong>
-            <span>Encrypted Messages</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="arch-layer">
-        <div class="layer-title">Network Layer</div>
-        <div class="layer-boxes">
-          <div class="layer-box">
-            <strong>WebRTC</strong>
-            <span>Direct P2P</span>
-          </div>
-          <div class="layer-box">
-            <strong>Multicast</strong>
-            <span>Local Discovery</span>
-          </div>
-          <div class="layer-box">
-            <strong>Gun.js Mesh</strong>
-            <span>Relay Network</span>
-          </div>
+          <div style="color: var(--terminal-green); font-weight: 700; margin-bottom: 0.5rem; font-family: 'Courier New', monospace;">Local P2P</div>
+          <div style="color: var(--text-secondary); font-size: 0.85rem;">Works offline</div>
         </div>
       </div>
     </div>
   </section>
+
 
   <!-- Download -->
   <section id="download" class="download">
     <div class="section-header">
-      <h2>Download</h2>
-      <p>Open source and free. No telemetry, no analytics, no tracking.</p>
+      <h2>Download v1.0.0</h2>
+      <p style="color: var(--text-secondary);">
+        <a href="https://github.com/LoFiTerminal/AiSeekTruth/releases/tag/v1.0.0" style="color: var(--terminal-green); text-decoration: none; font-weight: 600;">All Releases on GitHub →</a>
+      </p>
     </div>
 
     <div class="download-grid">
       <div class="download-card">
-        <h3>macOS</h3>
+        <h3>🍎 macOS</h3>
         <div class="download-meta">
-          Universal Binary (Intel + Apple Silicon)<br>
-          macOS 10.15+<br>
-          ~52MB DMG
+          Apple Silicon (M1/M2/M3/M4)<br>
+          macOS 11+<br>
+          ~96MB ZIP
         </div>
-        <a href="#" class="download-btn">Download for macOS</a>
+        <a href="https://github.com/LoFiTerminal/AiSeekTruth/releases/download/v1.0.0/AiSeekTruth-1.0.0-arm64-mac.zip" class="download-btn">Download ZIP</a>
       </div>
 
       <div class="download-card">
-        <h3>Windows</h3>
+        <h3>🪟 Windows x64</h3>
         <div class="download-meta">
-          Windows 10/11 (x64)<br>
-          Portable + Installer<br>
-          ~54MB EXE
+          Intel/AMD 64-bit<br>
+          Windows 10/11<br>
+          ~80MB EXE
         </div>
-        <a href="#" class="download-btn">Download for Windows</a>
+        <a href="https://github.com/LoFiTerminal/AiSeekTruth/releases/download/v1.0.0/AiSeekTruth-Setup-1.0.0-x64.exe" class="download-btn">Download Installer</a>
+        <a href="https://github.com/LoFiTerminal/AiSeekTruth/releases/download/v1.0.0/AiSeekTruth-1.0.0-x64-portable.exe" style="margin-top: 0.75rem; display: inline-block; padding: 0.5rem 1rem; background: var(--bg-tertiary); border: 1px solid var(--terminal-green); color: var(--terminal-green); border-radius: 4px; text-decoration: none; font-size: 0.85rem; font-weight: 600;">Portable</a>
       </div>
 
       <div class="download-card">
-        <h3>Linux</h3>
+        <h3>🪟 Windows ARM64</h3>
         <div class="download-meta">
-          AppImage / DEB / RPM<br>
-          x64 + ARM64<br>
-          ~51MB Package
+          Snapdragon, Surface Pro X<br>
+          Windows 10/11<br>
+          ~82MB EXE
         </div>
-        <a href="#" class="download-btn">Download for Linux</a>
+        <a href="https://github.com/LoFiTerminal/AiSeekTruth/releases/download/v1.0.0/AiSeekTruth-Setup-1.0.0-arm64.exe" class="download-btn">Download Installer</a>
+        <a href="https://github.com/LoFiTerminal/AiSeekTruth/releases/download/v1.0.0/AiSeekTruth-1.0.0-arm64-portable.exe" style="margin-top: 0.75rem; display: inline-block; padding: 0.5rem 1rem; background: var(--bg-tertiary); border: 1px solid var(--terminal-green); color: var(--terminal-green); border-radius: 4px; text-decoration: none; font-size: 0.85rem; font-weight: 600;">Portable</a>
+      </div>
+
+      <div class="download-card">
+        <h3>🐧 Linux ARM64</h3>
+        <div class="download-meta">
+          Any Distribution<br>
+          ~110MB AppImage<br>
+          ~69MB DEB
+        </div>
+        <a href="https://github.com/LoFiTerminal/AiSeekTruth/releases/download/v1.0.0/AiSeekTruth-1.0.0-arm64.AppImage" class="download-btn">Download AppImage</a>
+        <a href="https://github.com/LoFiTerminal/AiSeekTruth/releases/download/v1.0.0/aiseektruth_1.0.0_arm64.deb" style="margin-top: 0.75rem; display: inline-block; padding: 0.5rem 1rem; background: var(--bg-tertiary); border: 1px solid var(--terminal-green); color: var(--terminal-green); border-radius: 4px; text-decoration: none; font-size: 0.85rem; font-weight: 600;">DEB Package</a>
       </div>
     </div>
 
-    <div class="code-section" style="margin-top: 3rem;">
-      <div class="code-header">
-        <span class="code-title">Build from source</span>
-      </div>
-      <pre><span class="code-comment"># Clone repository</span>
-git clone https://github.com/yourusername/AiSeekTruth.git
-cd AiSeekTruth
 
-<span class="code-comment"># Install dependencies</span>
-npm install
-
-<span class="code-comment"># Run in development</span>
-npm run dev
-
-<span class="code-comment"># Build for production</span>
-npm run build</pre>
-    </div>
   </section>
 
   <!-- Footer -->
   <footer>
     <div class="footer-content">
       <div class="footer-section">
-        <h4>AiSeekTruth</h4>
-        <p>
-          Open-source encrypted messaging platform prioritizing user privacy
-          and decentralization. No venture capital. No growth hacking.
-          Just secure communication.
+        <h4 style="color: var(--terminal-green);">AiSeekTruth</h4>
+        <p style="color: var(--terminal-green); font-family: 'Courier New', monospace; margin-top: 0.5rem;">
+          Every app = Client + Relay
         </p>
       </div>
       <div class="footer-section">
-        <h4>Resources</h4>
-        <a href="#">Documentation</a>
-        <a href="#">API Reference</a>
-        <a href="#">Security Audit</a>
-        <a href="#">White Paper</a>
-      </div>
-      <div class="footer-section">
-        <h4>Community</h4>
-        <a href="#">GitHub Repository</a>
-        <a href="#">Issue Tracker</a>
-        <a href="#">Discussions</a>
-        <a href="#">Contributing</a>
+        <h4>Links</h4>
+        <a href="https://github.com/LoFiTerminal/AiSeekTruth">GitHub</a>
+        <a href="https://github.com/LoFiTerminal/AiSeekTruth#readme">Docs</a>
+        <a href="https://github.com/LoFiTerminal/AiSeekTruth/releases">Releases</a>
+        <a href="https://github.com/LoFiTerminal/AiSeekTruth/issues">Issues</a>
       </div>
       <div class="footer-section">
         <h4>Legal</h4>
-        <a href="#">GPL-3.0 License</a>
-        <a href="#">Privacy Policy</a>
-        <a href="#">Terms of Use</a>
-        <a href="#">Security Policy</a>
+        <a href="https://github.com/LoFiTerminal/AiSeekTruth/blob/main/LICENSE">GPL-3.0</a>
+        <a href="https://github.com/LoFiTerminal/AiSeekTruth/security">Security</a>
       </div>
     </div>
     <div class="footer-bottom">
-      <p>© 2026 AiSeekTruth. Licensed under GPL-3.0. Built with Electron, React, Gun.js, and libsodium.</p>
+      <p style="color: var(--terminal-green); font-family: 'Courier New', monospace;">
+        100% Open Source • Fully Decentralized • No Servers
+      </p>
+      <p style="margin-top: 0.5rem; font-size: 0.75rem; color: var(--text-secondary);">
+        © 2026 AiSeekTruth • Electron 28 • React 18 • Gun.js • Signal Protocol
+      </p>
     </div>
   </footer>
 
@@ -1291,36 +1156,50 @@ npm run build</pre>
       {
         from: 'U2',
         sender: 'user_beta',
-        text: 'Verified your identity via Ed25519 signature. Connection secure.',
-        time: '14:23:15',
+        text: '🔒 End-to-end encryption with Signal Protocol',
+        time: 'just now',
         delay: 1000
       },
       {
         from: 'U1',
         sender: null,
-        text: 'Confirmed. Shared secret established via X25519 ECDH. Ready for encrypted comms.',
-        time: '14:23:47',
-        delay: 3000
+        text: '🌐 Every app acts as both client and relay',
+        time: '2s ago',
+        delay: 2500
       },
       {
         from: 'U2',
         sender: 'user_beta',
-        text: 'Testing group chat functionality. All members receiving encrypted messages via pairwise encryption?',
-        time: '14:24:12',
-        delay: 3500
+        text: '📖 100% open source - audit the code yourself',
+        time: '5s ago',
+        delay: 3000
       },
       {
         from: 'U1',
         sender: null,
-        text: 'Affirmative. Each group message encrypted separately per member. No shared secrets.',
-        time: '14:24:38',
+        text: '💬 Group chats with ICQ-style away messages',
+        time: '8s ago',
         delay: 3000
       },
       {
         from: 'U2',
         sender: 'user_beta',
-        text: 'Perfect. System integrity verified. P2P mesh routing operational.',
-        time: '14:25:01',
+        text: '🎨 Retro terminal UI with modern UX polish',
+        time: '11s ago',
+        delay: 3000
+      },
+      {
+        from: 'U1',
+        sender: null,
+        text: '🔊 Sound notifications and desktop alerts',
+        time: '14s ago',
+        delay: 3000
+      },
+      {
+        from: 'U2',
+        sender: 'user_beta',
+        text: '🚫 No central servers. No tracking. No backdoors.',
+        time: '17s ago',
         delay: 3500
       }
     ];
