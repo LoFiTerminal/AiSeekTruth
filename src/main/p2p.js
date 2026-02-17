@@ -1,5 +1,8 @@
 const Gun = require('gun');
 const EventEmitter = require('events');
+const path = require('path');
+const { app } = require('electron');
+const fs = require('fs');
 
 class P2PNetwork extends EventEmitter {
   constructor() {
@@ -33,11 +36,14 @@ class P2PNetwork extends EventEmitter {
     // Merge user config with defaults
     this.config = { ...this.config, ...userConfig };
 
-    // Build relay list
+    // Build relay list - Using working Gun.js relays
     const publicRelays = [
-      'https://gun-manhattan.herokuapp.com/gun',
+      'https://gun-us.herokuapp.com/gun',
       'https://gunjs.herokuapp.com/gun',
-      'https://e2eec.herokuapp.com/gun',
+      'https://gun-matrix.herokuapp.com/gun',
+      'wss://gun-matrix.herokuapp.com/gun',
+      'https://peer.wallie.io/gun',
+      'wss://peer.wallie.io/gun'
     ];
 
     const allRelays = [
@@ -45,12 +51,22 @@ class P2PNetwork extends EventEmitter {
       ...this.config.customRelays
     ];
 
+    // Get userData directory for Gun.js storage
+    const userDataPath = app.getPath('userData');
+    const gunDataPath = path.join(userDataPath, 'gundb');
+
+    // Ensure directory exists
+    if (!fs.existsSync(gunDataPath)) {
+      fs.mkdirSync(gunDataPath, { recursive: true });
+    }
+
     console.log('=== P2P Network Configuration ===');
     console.log('Mode: Hybrid (Client + Relay)');
     console.log('Act as relay:', this.config.actAsRelay);
     console.log('Multicast enabled:', this.config.enableMulticast);
     console.log('Connected to', allRelays.length, 'relay servers');
     console.log('Max relay storage:', this.config.maxRelayStorage, 'MB');
+    console.log('Gun.js storage path:', gunDataPath);
 
     // Initialize Gun with hybrid configuration
     const gunConfig = {
@@ -60,6 +76,9 @@ class P2PNetwork extends EventEmitter {
       // ENABLE RELAY MODE - Help strengthen the network
       localStorage: this.config.actAsRelay,  // Store & forward messages
       radisk: this.config.actAsRelay,        // Persist relay data
+
+      // Set the storage path
+      file: this.config.actAsRelay ? path.join(gunDataPath, 'radata') : undefined,
 
       // Multicast for local peer discovery
       multicast: this.config.enableMulticast ? {
