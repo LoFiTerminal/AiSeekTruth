@@ -82,8 +82,7 @@ class P2PNetwork extends EventEmitter {
       // Pure client mode - no local persistence
       localStorage: false,  // Don't store & forward
       radisk: false,        // Don't persist relay data
-      // NOTE: Removed 'file' option - was causing ENOENT errors
-      // Since we're a pure client, we don't need local file storage
+      file: false,          // CRITICAL: Explicitly disable file storage to prevent EROFS errors
 
       // DISABLE AXE for now - it might be causing disconnections
       axe: false,
@@ -437,9 +436,9 @@ class P2PNetwork extends EventEmitter {
 
       // Set a timeout in case Gun.js never responds
       const timeout = setTimeout(() => {
-        console.warn('⚠️ Contact request Gun.js callback timeout after 10s - resolving anyway');
+        console.warn('⚠️ Contact request Gun.js callback timeout after 5s - resolving anyway');
         resolve({ requestKey, requestId, dataSize, timedOut: true });
-      }, 10000);
+      }, 5000);
 
       // Send to Gun.js and WAIT for acknowledgment
       this.gun
