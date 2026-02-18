@@ -61,6 +61,13 @@ contextBridge.exposeInMainWorld('api', {
   markMessagesRead: (messageIds) =>
     ipcRenderer.invoke('messages:markRead', messageIds),
 
+  // Global Chat
+  sendGlobalMessage: (message) =>
+    ipcRenderer.invoke('global-chat:send', message),
+
+  getGlobalMessages: (limit = 100) =>
+    ipcRenderer.invoke('global-chat:get-messages', limit),
+
   // Presence
   updateStatus: (status) =>
     ipcRenderer.invoke('status:update', status),
@@ -188,6 +195,13 @@ contextBridge.exposeInMainWorld('api', {
     return () => ipcRenderer.removeListener('contact:request:response:declined', subscription);
   },
 
+  // Global chat events
+  onGlobalMessage: (callback) => {
+    const subscription = (event, message) => callback(message);
+    ipcRenderer.on('global:message', subscription);
+    return () => ipcRenderer.removeListener('global:message', subscription);
+  },
+
   // Relay server events
   onRelayStarted: (callback) => {
     const subscription = (event, info) => callback(info);
@@ -199,4 +213,26 @@ contextBridge.exposeInMainWorld('api', {
   removeAllListeners: (channel) => {
     ipcRenderer.removeAllListeners(channel);
   },
+});
+
+// Forward main process console logs to browser DevTools
+ipcRenderer.on('main:log', (event, { type, args }) => {
+  const prefix = '%c[MAIN]';
+  const style = 'color: #00ff41; font-weight: bold;';
+  
+  const formattedArgs = args.map(arg => {
+    try {
+      return typeof arg === 'string' && (arg.startsWith('{') || arg.startsWith('[')) ? JSON.parse(arg) : arg;
+    } catch {
+      return arg;
+    }
+  });
+
+  if (type === 'error') {
+    console.error(prefix, style, ...formattedArgs);
+  } else if (type === 'warn') {
+    console.warn(prefix, style, ...formattedArgs);
+  } else {
+    console.log(prefix, style, ...formattedArgs);
+  }
 });

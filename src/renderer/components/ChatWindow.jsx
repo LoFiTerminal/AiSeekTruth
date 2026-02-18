@@ -3,6 +3,7 @@ import { MessageCircle, Lock, User, Hash, Users } from 'lucide-react';
 import useStore from '../store';
 import MessageInput from './MessageInput';
 import GroupMembers from './GroupMembers';
+import GlobalChat from './GlobalChat';
 
 function ChatWindow() {
   const { activeContact, activeGroup, messages, groupMessages, identity } = useStore();
@@ -83,77 +84,7 @@ function ChatWindow() {
   if (!activeChat) {
     return (
       <div className="chat-window">
-        <div className="chat-empty">
-          <MessageCircle className="chat-empty-icon" size={80} />
-          <p style={{ fontSize: '16px', fontWeight: '600', marginBottom: '24px' }}>
-            Select a contact or group to start chatting
-          </p>
-
-          {/* Keyboard shortcuts */}
-          <div style={{
-            maxWidth: '400px',
-            textAlign: 'left',
-            background: 'var(--bg-secondary)',
-            border: '1px solid var(--border-primary)',
-            borderRadius: '8px',
-            padding: '20px',
-            marginTop: '16px',
-          }}>
-            <div style={{
-              fontSize: '13px',
-              fontWeight: '600',
-              color: 'var(--terminal-green)',
-              marginBottom: '16px',
-              fontFamily: "'Courier New', monospace",
-            }}>
-              ⌨️ Keyboard Shortcuts
-            </div>
-            <div style={{ fontSize: '12px', lineHeight: '1.8', color: 'var(--text-secondary)' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                <span style={{ fontFamily: "'Courier New', monospace", color: 'var(--terminal-green)' }}>Cmd+N</span>
-                <span>Add new contact</span>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                <span style={{ fontFamily: "'Courier New', monospace", color: 'var(--terminal-green)' }}>Cmd+G</span>
-                <span>Create new group</span>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                <span style={{ fontFamily: "'Courier New', monospace", color: 'var(--terminal-green)' }}>Cmd+,</span>
-                <span>Open settings</span>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                <span style={{ fontFamily: "'Courier New', monospace", color: 'var(--terminal-green)' }}>Cmd+K</span>
-                <span>Quick search contacts</span>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span style={{ fontFamily: "'Courier New', monospace", color: 'var(--terminal-green)' }}>Enter</span>
-                <span>Send message</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Tips */}
-          <div style={{
-            maxWidth: '400px',
-            textAlign: 'left',
-            background: 'rgba(0, 255, 65, 0.05)',
-            border: '1px solid rgba(0, 255, 65, 0.2)',
-            borderRadius: '8px',
-            padding: '16px',
-            marginTop: '16px',
-            fontSize: '12px',
-            lineHeight: '1.6',
-            color: 'var(--text-secondary)',
-          }}>
-            <strong style={{ color: 'var(--terminal-green)', display: 'block', marginBottom: '8px' }}>
-              💡 Pro Tips
-            </strong>
-            • Double-click a contact to view their info<br />
-            • Right-click for quick actions<br />
-            • All messages are end-to-end encrypted<br />
-            • Messages sync across all your relays
-          </div>
-        </div>
+        <GlobalChat identity={identity} />
       </div>
     );
   }

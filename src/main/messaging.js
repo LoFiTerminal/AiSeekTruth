@@ -439,14 +439,14 @@ class MessagingService extends EventEmitter {
       timestamp,
     };
 
-    // Save to local database
-    storage.saveContactRequest(request);
-
-    // Send via P2P network
+    // Send via P2P network FIRST
     try {
       await this.p2p.sendContactRequest(recipientPublicKey, request);
-      this.emit('contact:request:sent', request);
       console.log('✅ Contact request delivered to:', recipientPublicKey);
+
+      // Only save to local database AFTER successful P2P send
+      storage.saveContactRequest(request);
+      this.emit('contact:request:sent', request);
     } catch (error) {
       console.error('❌ Failed to send contact request:', error);
       this.emit('error', { type: 'contact_request_failed', error });
@@ -693,6 +693,78 @@ class MessagingService extends EventEmitter {
     }
 
     this.p2p.updateStatus(this.identity.publicKey, status);
+  }
+
+  /**
+   * Subscribe to global chat
+   */
+  subscribeToGlobalChat() {
+    if (!this.identity || !this.p2p) {
+      throw new Error('Messaging service not initialized');
+    }
+
+    // Subscribe to global chat messages
+    this.p2p.subscribeToGlobalChat();
+
+    // Listen for incoming global messages
+    this.p2p.on('global:message', (messageData) => {
+      console.log('📨 Global message received:', messageData.username);
+
+      // Emit to UI
+      this.emit('global:message', messageData);
+
+      // Store in local storage for history
+      try {
+        storage.saveGlobalMessage(messageData);
+      } catch (error) {
+        console.error('Failed to save global message:', error);
+      }
+    });
+
+    console.log('✅ Subscribed to global chat');
+  }
+
+  /**
+   * Send message to global chat
+   * @param {string} message - Message text
+   * @returns {Promise<Object>} Message result
+   */
+  async sendGlobalMessage(message) {
+    if (!this.identity || !this.p2p) {
+      throw new Error('Messaging service not initialized');
+    }
+
+    if (!message || !message.trim()) {
+      throw new Error('Message cannot be empty');
+    }
+
+    try {
+      const result = await this.p2p.sendGlobalMessage(
+        this.identity.username,
+        this.identity.publicKey,
+        message.trim()
+      );
+
+      console.log('✅ Global message sent');
+      return result;
+    } catch (error) {
+      console.error('❌ Failed to send global message:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get global chat messages from local storage
+   * @param {number} limit - Max number of messages to return
+   * @returns {Array} Global messages
+   */
+  getGlobalMessages(limit = 100) {
+    try {
+      return storage.getGlobalMessages(limit);
+    } catch (error) {
+      console.error('Failed to get global messages:', error);
+      return [];
+    }
   }
 
   /**

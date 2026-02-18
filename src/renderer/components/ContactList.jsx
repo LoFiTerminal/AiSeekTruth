@@ -167,7 +167,7 @@ function ContactList() {
       }
     } catch (error) {
       console.error('Error sending contact request:', error);
-      setAddError('Failed to send contact request');
+      setAddError('Failed to send contact request: ' + (error.message || 'Unknown error'));
     }
   };
 

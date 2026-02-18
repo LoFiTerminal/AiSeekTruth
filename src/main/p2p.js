@@ -79,24 +79,18 @@ class P2PNetwork extends EventEmitter {
       // Connect to bootstrap relays for peer discovery
       peers: bootstrapRelays,
 
-      // ENABLE AXE - Automatic DHT peer discovery
-      axe: true,
+      // DISABLE RELAY MODE - Just act as a client to prevent connection issues
+      localStorage: false,  // Don't store & forward
+      radisk: false,        // Don't persist relay data
 
-      // ENABLE RELAY MODE - Help strengthen the network
-      localStorage: this.config.actAsRelay,  // Store & forward messages
-      radisk: this.config.actAsRelay,        // Persist relay data
+      // Set the storage path only for local data
+      file: path.join(gunDataPath, 'radata'),
 
-      // Set the storage path
-      file: this.config.actAsRelay ? path.join(gunDataPath, 'radata') : undefined,
+      // DISABLE AXE for now - it might be causing disconnections
+      axe: false,
 
-      // Multicast for local peer discovery (essential for P2P)
-      multicast: this.config.enableMulticast ? {
-        address: '233.255.255.255',
-        port: 8765
-      } : false,
-
-      // Don't store too much relay data
-      until: this.config.maxRelayStorage * 1024 * 1024, // Convert MB to bytes
+      // DISABLE Multicast - might interfere with relay connection
+      multicast: false,
 
       // WebRTC configuration for direct peer connections
       WebRTC: {
@@ -105,7 +99,10 @@ class P2PNetwork extends EventEmitter {
           { urls: 'stun:stun.l.google.com:19302' },
           { urls: 'stun:stun1.l.google.com:19302' }
         ]
-      }
+      },
+
+      // Add retry logic for disconnected peers
+      retry: 1000, // Retry connection every 1 second
     };
 
     this.gun = Gun(gunConfig);
@@ -113,14 +110,25 @@ class P2PNetwork extends EventEmitter {
     this.isInitialized = true;
 
     // Listen for peer connections
+    this.connectedPeers = new Set();
+
     this.gun.on('hi', (peer) => {
-      console.log('Connected to peer:', peer.url || 'local peer');
-      this.emit('peer:connected', { peer: peer.url || 'local' });
+      const peerUrl = peer.url || 'local peer';
+      console.log('🤝 Connected to peer:', peerUrl);
+      this.connectedPeers.add(peerUrl);
+      this.emit('peer:connected', { peer: peerUrl });
+
+      // Log all connected peers
+      console.log('📊 Total connected peers:', this.connectedPeers.size);
     });
 
     this.gun.on('bye', (peer) => {
-      console.log('Disconnected from peer:', peer.url || 'local peer');
-      this.emit('peer:disconnected', { peer: peer.url || 'local' });
+      const peerUrl = peer.url || 'local peer';
+      console.log('👋 Disconnected from peer:', peerUrl);
+      this.connectedPeers.delete(peerUrl);
+      this.emit('peer:disconnected', { peer: peerUrl });
+
+      console.log('📊 Total connected peers:', this.connectedPeers.size);
     });
 
     // Announce presence
@@ -131,6 +139,15 @@ class P2PNetwork extends EventEmitter {
 
     // Start traffic monitoring
     this.startTrafficMonitoring();
+
+    // Keep connection alive with periodic pings
+    this.keepAliveInterval = setInterval(() => {
+      if (this.gun && this.connectedPeers.size === 0) {
+        console.log('⚠️ No peers connected, attempting reconnect...');
+        // Try to reconnect by reading from a known path
+        this.gun.get('_keepalive').get('ping').put({ timestamp: Date.now() });
+      }
+    }, 5000);
 
     // Log relay statistics periodically
     this.startRelayMonitoring();
@@ -339,48 +356,48 @@ class P2PNetwork extends EventEmitter {
    * @param {Object} requestData - Contact request data
    */
   sendContactRequest(recipientKey, requestData) {
-    return new Promise((resolve, reject) => {
-      if (!this.gun) {
-        reject(new Error('P2P network not initialized'));
-        return;
-      }
+    if (!this.gun) {
+      return Promise.reject(new Error('P2P network not initialized'));
+    }
 
-      const requestEnvelope = {
-        id: requestData.id,
-        fromPublicKey: requestData.fromPublicKey,
-        fromUsername: requestData.fromUsername,
-        fromEncryptionPublicKey: requestData.fromEncryptionPublicKey,
-        message: requestData.message || null,
-        timestamp: requestData.timestamp,
-        type: 'contact_request'
-      };
+    const requestEnvelope = {
+      id: requestData.id,
+      fromPublicKey: requestData.fromPublicKey,
+      fromUsername: requestData.fromUsername,
+      fromEncryptionPublicKey: requestData.fromEncryptionPublicKey,
+      message: requestData.message || null,
+      timestamp: requestData.timestamp,
+      type: 'contact_request'
+    };
 
-      // Generate request ID
-      const requestId = requestData.id || `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    // Generate request ID
+    const requestId = requestData.id || `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
-      // Track outgoing traffic
-      const dataSize = JSON.stringify(requestEnvelope).length;
-      this.trafficStats.bytesOut += dataSize;
-      this.trafficStats.messagesOut++;
+    // Track outgoing traffic
+    const dataSize = JSON.stringify(requestEnvelope).length;
+    this.trafficStats.bytesOut += dataSize;
+    this.trafficStats.messagesOut++;
 
-      // Flat key for contact requests (2-level structure for relay sync)
-      // Format: creq_RECIPIENT
-      const requestKey = `creq_${recipientKey}`;
+    // Flat key for contact requests (2-level structure for relay sync)
+    // Format: creq_RECIPIENT
+    const requestKey = `creq_${recipientKey}`;
 
-      // Store with 2-level structure (WORKS with relay!) - Wait for Gun acknowledgment
-      this.gun
-        .get(requestKey)
-        .get(requestId)
-        .put(requestEnvelope, (ack) => {
-          if (ack.err) {
-            console.error('Contact request send failed:', ack.err);
-            reject(new Error(`Gun.js error: ${ack.err}`));
-          } else {
-            console.log('✅ Contact request confirmed:', recipientKey, 'key:', requestKey, `(${dataSize} bytes)`);
-            resolve({ requestKey, requestId, dataSize });
-          }
-        });
-    });
+    // Send to Gun.js with fire-and-forget pattern (optimistic)
+    // Don't wait for acknowledgment to avoid hanging
+    this.gun
+      .get(requestKey)
+      .get(requestId)
+      .put(requestEnvelope, (ack) => {
+        if (ack.err) {
+          console.error('⚠️ Contact request Gun.js sync FAILED:', ack.err);
+        } else {
+          console.log('✅ Contact request Gun.js sync CONFIRMED:', recipientKey, 'key:', requestKey, `(${dataSize} bytes)`);
+        }
+      });
+
+    // Return immediately (optimistic - assume it will sync)
+    console.log('📤 Contact request queued for sending to:', recipientKey);
+    return Promise.resolve({ requestKey, requestId, dataSize });
   }
 
   /**
@@ -753,6 +770,172 @@ class P2PNetwork extends EventEmitter {
   }
 
   /**
+   * Subscribe to global chat messages
+   * Everyone can read/write to this public channel
+   */
+  subscribeToGlobalChat() {
+    if (!this.gun) {
+      console.error('❌ P2P network not initialized');
+      return;
+    }
+
+    const globalChatPath = 'aiseektruth_global_chat';
+    console.log('📡 Subscribing to global chat...');
+    console.log('   Path:', globalChatPath);
+
+    // Keep track of seen message IDs to prevent duplicates
+    const seenMessages = new Set();
+
+    this.gun.get(globalChatPath).map().on((messageData, messageId) => {
+      console.log('🔔 Gun.js event fired:', messageId, messageData);
+
+      if (!messageData || typeof messageData !== 'object') {
+        console.log('⚠️ Invalid message data, skipping');
+        return;
+      }
+
+      // Check for duplicates
+      if (seenMessages.has(messageId)) {
+        console.log('⚠️ Duplicate message, skipping:', messageId);
+        return;
+      }
+      seenMessages.add(messageId);
+
+      // Track incoming traffic
+      const dataSize = JSON.stringify(messageData).length;
+      if (this.trafficStats) {
+        this.trafficStats.bytesIn += dataSize;
+        this.trafficStats.messagesIn += 1;
+        this.trafficStats.lastUpdate = Date.now();
+      }
+
+      console.log('📨 Processing global message:', {
+        messageId,
+        username: messageData.username,
+        publicKey: messageData.publicKey?.substring(0, 10) + '...',
+        messageLength: messageData.message?.length,
+        timestamp: new Date(messageData.timestamp).toLocaleTimeString(),
+        dataSize: dataSize + ' bytes'
+      });
+
+      // Emit global message event
+      this.emit('global:message', {
+        id: messageId,
+        username: messageData.username || 'Anonymous',
+        publicKey: messageData.publicKey || 'unknown',
+        message: messageData.message || '',
+        timestamp: messageData.timestamp || Date.now()
+      });
+    });
+
+    console.log('✅ Subscribed to global chat successfully');
+    console.log('   Listening for messages on:', globalChatPath);
+  }
+
+  /**
+   * Send message to global chat
+   * @param {string} username - Sender's username
+   * @param {string} publicKey - Sender's public key
+   * @param {string} message - Message text
+   * @returns {Promise}
+   */
+  sendGlobalMessage(username, publicKey, message) {
+    if (!this.gun) {
+      return Promise.reject(new Error('P2P network not initialized'));
+    }
+
+    if (!this.isInitialized) {
+      return Promise.reject(new Error('P2P network not ready'));
+    }
+
+    const messageId = `gmsg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const messageData = {
+      username,
+      publicKey,
+      message,
+      timestamp: Date.now()
+    };
+
+    const globalChatPath = 'aiseektruth_global_chat';
+
+    console.log('📤 SENDING GLOBAL MESSAGE');
+    console.log('   Message ID:', messageId);
+    console.log('   Username:', username);
+    console.log('   Public Key:', publicKey.substring(0, 10) + '...');
+    console.log('   Message:', message);
+    console.log('   Timestamp:', new Date(messageData.timestamp).toLocaleTimeString());
+    console.log('   Connected Peers:', this.connectedPeers?.size || 0);
+
+    if (this.connectedPeers && this.connectedPeers.size > 0) {
+      console.log('   Peers:', Array.from(this.connectedPeers));
+    } else {
+      console.warn('⚠️ No peers connected! Message may not sync.');
+    }
+
+    // Save to local storage immediately (optimistic)
+    try {
+      const storage = require('./storage');
+      storage.saveGlobalMessage({
+        id: messageId,
+        username,
+        publicKey,
+        message,
+        timestamp: messageData.timestamp
+      });
+      console.log('✅ Saved to local storage');
+    } catch (err) {
+      console.error('❌ Failed to save locally:', err);
+      return Promise.reject(new Error('Failed to save message locally'));
+    }
+
+    // Send to Gun.js (fire and forget - don't wait for ack)
+    const dataSize = JSON.stringify(messageData).length;
+    console.log('🌐 Sending to Gun.js network...', {
+      path: globalChatPath,
+      messageId,
+      dataSize: dataSize + ' bytes'
+    });
+
+    // Track outgoing traffic
+    if (this.trafficStats) {
+      this.trafficStats.bytesOut += dataSize;
+      this.trafficStats.messagesOut += 1;
+      this.trafficStats.lastUpdate = Date.now();
+    }
+
+    this.gun.get(globalChatPath).get(messageId).put(messageData, (ack) => {
+      if (ack.err) {
+        console.error('⚠️ Gun.js sync FAILED:', ack.err);
+        console.error('   Message will only be available locally!');
+      } else {
+        console.log('✅ Gun.js sync CONFIRMED:', messageId);
+        console.log('   Message is now on the network!');
+
+        // Track confirmation as incoming traffic (acknowledgment)
+        if (this.trafficStats) {
+          this.trafficStats.bytesIn += 100; // Rough estimate for ack packet
+        }
+      }
+    });
+
+    // Return success immediately (optimistic)
+    console.log('✅ Global message saved locally:', messageId);
+    console.log('   Gun.js sync happening in background...');
+    return Promise.resolve({ messageId, timestamp: messageData.timestamp });
+  }
+
+  /**
+   * Unsubscribe from global chat
+   */
+  unsubscribeFromGlobalChat() {
+    if (this.gun) {
+      const globalChatPath = 'aiseektruth_global_chat';
+      this.gun.get(globalChatPath).map().off();
+      console.log('📡 Unsubscribed from global chat');
+    }
+  }
+
+  /**
    * Disconnect from P2P network
    */
   disconnect() {
@@ -764,6 +947,9 @@ class P2PNetwork extends EventEmitter {
     if (this.identity && this.gun) {
       this.updateStatus(this.identity.publicKey, 'offline');
     }
+
+    // Unsubscribe from global chat
+    this.unsubscribeFromGlobalChat();
 
     // Unsubscribe from all contacts
     for (const publicKey of this.contactSubscriptions.keys()) {

@@ -2,7 +2,7 @@ import { useState, useRef } from 'react';
 import { Send } from 'lucide-react';
 import useStore from '../store';
 
-function MessageInput() {
+function MessageInput({ onSendMessage, placeholder, disabled }) {
   const { activeContact, activeGroup, identity, addMessage, addGroupMessage } = useStore();
   const [text, setText] = useState('');
   const [isSending, setIsSending] = useState(false);
@@ -11,10 +11,23 @@ function MessageInput() {
   const isGroupChat = !!activeGroup;
   const activeChat = isGroupChat ? activeGroup : activeContact;
 
+  // If custom onSendMessage is provided, this is a standalone input (like GlobalChat)
+  const isStandalone = !!onSendMessage;
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!text.trim() || !activeChat || isSending) {
+    if (!text.trim() || isSending) {
+      return;
+    }
+
+    // For standalone mode, check if disabled
+    if (isStandalone && disabled) {
+      return;
+    }
+
+    // For store-connected mode, check if activeChat exists
+    if (!isStandalone && !activeChat) {
       return;
     }
 
@@ -29,6 +42,13 @@ function MessageInput() {
     setIsSending(true);
 
     try {
+      // Standalone mode - use custom callback
+      if (isStandalone) {
+        await onSendMessage(messageText);
+        return;
+      }
+
+      // Store-connected mode
       if (isGroupChat) {
         // Send group message
         const optimisticMessage = {
@@ -82,6 +102,7 @@ function MessageInput() {
       }
     } catch (error) {
       console.error('Error sending message:', error);
+      alert('Failed to send message: ' + error.message);
     } finally {
       setIsSending(false);
     }
@@ -108,11 +129,17 @@ function MessageInput() {
     }
   };
 
-  const placeholderText = isGroupChat
-    ? `Message #${activeGroup?.name || 'group'}`
-    : activeContact
-    ? `Message ${activeContact.nickname || activeContact.username}`
-    : 'Select a chat to start messaging';
+  const placeholderText = placeholder || (
+    isGroupChat
+      ? `Message #${activeGroup?.name || 'group'}`
+      : activeContact
+      ? `Message ${activeContact.nickname || activeContact.username}`
+      : 'Select a chat to start messaging'
+  );
+
+  const isDisabled = isStandalone
+    ? (disabled || isSending)
+    : (!activeChat || isSending);
 
   return (
     <form className="message-input" onSubmit={handleSubmit}>
@@ -122,14 +149,14 @@ function MessageInput() {
         onChange={handleChange}
         onKeyDown={handleKeyDown}
         placeholder={placeholderText}
-        disabled={!activeChat || isSending}
+        disabled={isDisabled}
         rows={1}
       />
 
       <button
         type="submit"
         className="send-button"
-        disabled={!activeChat || !text.trim() || isSending}
+        disabled={isDisabled || !text.trim()}
       >
         {isSending ? (
           <span className="loading-spinner"></span>

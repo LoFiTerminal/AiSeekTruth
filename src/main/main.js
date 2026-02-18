@@ -10,6 +10,38 @@ let currentIdentity = null;
 let p2p = null;
 let messaging = null;
 
+// Forward main process logs to renderer console
+const originalLog = console.log;
+const originalError = console.error;
+const originalWarn = console.warn;
+
+console.log = function(...args) {
+  originalLog.apply(console, args);
+  if (mainWindow && mainWindow.webContents) {
+    try {
+      mainWindow.webContents.send('main:log', { type: 'log', args: args.map(a => typeof a === 'object' ? JSON.stringify(a) : String(a)) });
+    } catch (e) { /* ignore */ }
+  }
+};
+
+console.error = function(...args) {
+  originalError.apply(console, args);
+  if (mainWindow && mainWindow.webContents) {
+    try {
+      mainWindow.webContents.send('main:log', { type: 'error', args: args.map(a => typeof a === 'object' ? JSON.stringify(a) : String(a)) });
+    } catch (e) { /* ignore */ }
+  }
+};
+
+console.warn = function(...args) {
+  originalWarn.apply(console, args);
+  if (mainWindow && mainWindow.webContents) {
+    try {
+      mainWindow.webContents.send('main:log', { type: 'warn', args: args.map(a => typeof a === 'object' ? JSON.stringify(a) : String(a)) });
+    } catch (e) { /* ignore */ }
+  }
+};
+
 /**
  * Create main application window
  */
@@ -234,6 +266,35 @@ ipcMain.handle('contact-requests:decline', async (event, requestId) => {
     return { success: true, request };
   } catch (error) {
     console.error('Error declining contact request:', error);
+    return { success: false, error: error.message };
+  }
+});
+
+// Global Chat IPC Handlers
+ipcMain.handle('global-chat:send', async (event, message) => {
+  try {
+    if (!messaging) {
+      return { success: false, error: 'Messaging service not initialized' };
+    }
+
+    const result = await messaging.sendGlobalMessage(message);
+    return { success: true, result };
+  } catch (error) {
+    console.error('Error sending global message:', error);
+    return { success: false, error: error.message };
+  }
+});
+
+ipcMain.handle('global-chat:get-messages', async (event, limit = 100) => {
+  try {
+    if (!messaging) {
+      return { success: false, error: 'Messaging service not initialized' };
+    }
+
+    const messages = messaging.getGlobalMessages(limit);
+    return { success: true, messages };
+  } catch (error) {
+    console.error('Error getting global messages:', error);
     return { success: false, error: error.message };
   }
 });
@@ -518,7 +579,17 @@ function initializeServices(identity) {
     }
   });
 
-  console.log('Services initialized');
+  // Forward global chat events
+  messaging.on('global:message', (message) => {
+    if (mainWindow) {
+      mainWindow.webContents.send('global:message', message);
+    }
+  });
+
+  // Subscribe to global chat
+  messaging.subscribeToGlobalChat();
+
+  console.log('Services initialized (including global chat)');
 }
 
 // ==================== APP LIFECYCLE ====================

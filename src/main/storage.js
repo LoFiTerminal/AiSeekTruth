@@ -129,6 +129,14 @@ function initializeDatabase() {
       responded_at INTEGER
     );
 
+    CREATE TABLE IF NOT EXISTS global_messages (
+      id TEXT PRIMARY KEY,
+      username TEXT NOT NULL,
+      public_key TEXT NOT NULL,
+      message TEXT NOT NULL,
+      timestamp INTEGER NOT NULL
+    );
+
     -- Create indexes for performance
     CREATE INDEX IF NOT EXISTS idx_messages_contact ON messages(contact_public_key);
     CREATE INDEX IF NOT EXISTS idx_messages_timestamp ON messages(timestamp DESC);
@@ -142,6 +150,7 @@ function initializeDatabase() {
     CREATE INDEX IF NOT EXISTS idx_contact_requests_to ON contact_requests(to_public_key);
     CREATE INDEX IF NOT EXISTS idx_contact_requests_from ON contact_requests(from_public_key);
     CREATE INDEX IF NOT EXISTS idx_contact_requests_status ON contact_requests(status);
+    CREATE INDEX IF NOT EXISTS idx_global_messages_timestamp ON global_messages(timestamp DESC);
   `);
 
   return db;
@@ -929,6 +938,52 @@ function contactRequestExists(fromPublicKey, toPublicKey) {
 }
 
 /**
+ * Save global chat message
+ * @param {Object} messageData - Message data
+ */
+function saveGlobalMessage(messageData) {
+  if (!db) {
+    throw new Error('Database not initialized');
+  }
+
+  const stmt = db.prepare(`
+    INSERT OR REPLACE INTO global_messages (id, username, public_key, message, timestamp)
+    VALUES (?, ?, ?, ?, ?)
+  `);
+
+  stmt.run(
+    messageData.id,
+    messageData.username,
+    messageData.publicKey,
+    messageData.message,
+    messageData.timestamp
+  );
+
+  console.log('Global message saved:', messageData.id);
+}
+
+/**
+ * Get global chat messages
+ * @param {number} limit - Max number of messages
+ * @returns {Array} Global messages
+ */
+function getGlobalMessages(limit = 100) {
+  if (!db) {
+    throw new Error('Database not initialized');
+  }
+
+  const stmt = db.prepare(`
+    SELECT id, username, public_key as publicKey, message, timestamp
+    FROM global_messages
+    ORDER BY timestamp DESC
+    LIMIT ?
+  `);
+
+  const messages = stmt.all(limit);
+  return messages.reverse(); // Return oldest first
+}
+
+/**
  * Close database connection
  */
 function closeDatabase() {
@@ -982,4 +1037,7 @@ module.exports = {
   updateContactRequestStatus,
   deleteContactRequest,
   contactRequestExists,
+  // Global Chat
+  saveGlobalMessage,
+  getGlobalMessages,
 };
