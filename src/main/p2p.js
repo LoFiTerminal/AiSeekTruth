@@ -79,12 +79,11 @@ class P2PNetwork extends EventEmitter {
       // Connect to bootstrap relays for peer discovery
       peers: bootstrapRelays,
 
-      // DISABLE RELAY MODE - Just act as a client to prevent connection issues
+      // Pure client mode - no local persistence
       localStorage: false,  // Don't store & forward
       radisk: false,        // Don't persist relay data
-
-      // Set the storage path only for local data
-      file: path.join(gunDataPath, 'radata'),
+      // NOTE: Removed 'file' option - was causing ENOENT errors
+      // Since we're a pure client, we don't need local file storage
 
       // DISABLE AXE for now - it might be causing disconnections
       axe: false,
