@@ -29,6 +29,12 @@ function Profile({ onClose }) {
   const [showAwayMessage, setShowAwayMessage] = useState(false);
   const [soundsEnabled, setSoundsEnabled] = useState(soundManager.isEnabled());
   const [soundVolume, setSoundVolume] = useState(soundManager.getVolume());
+  const [avatarImage, setAvatarImage] = useState(localStorage.getItem('avatarImage') || null);
+  const [imagePosition, setImagePosition] = useState({
+    x: parseInt(localStorage.getItem('avatarImageX') || '50'),
+    y: parseInt(localStorage.getItem('avatarImageY') || '50')
+  });
+  const [imageZoom, setImageZoom] = useState(parseInt(localStorage.getItem('avatarImageZoom') || '100'));
 
   const copyToClipboard = (text, key) => {
     navigator.clipboard.writeText(text);
@@ -58,6 +64,52 @@ function Profile({ onClose }) {
     window.dispatchEvent(new Event('userStatusChanged'));
   };
 
+  const handleImageUpload = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Check file size (max 500KB for P2P sharing)
+    if (file.size > 500 * 1024) {
+      alert('Image too large! Please choose an image smaller than 500KB.');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const base64Image = event.target.result;
+      setAvatarImage(base64Image);
+      localStorage.setItem('avatarImage', base64Image);
+      // Trigger re-render of other components
+      window.dispatchEvent(new Event('avatarImageChanged'));
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleRemoveImage = () => {
+    setAvatarImage(null);
+    localStorage.removeItem('avatarImage');
+    localStorage.removeItem('avatarImageX');
+    localStorage.removeItem('avatarImageY');
+    localStorage.removeItem('avatarImageZoom');
+    setImagePosition({ x: 50, y: 50 });
+    setImageZoom(100);
+    // Trigger re-render of other components
+    window.dispatchEvent(new Event('avatarImageChanged'));
+  };
+
+  const handlePositionChange = (axis, value) => {
+    const newPosition = { ...imagePosition, [axis]: value };
+    setImagePosition(newPosition);
+    localStorage.setItem(`avatarImage${axis.toUpperCase()}`, value);
+    window.dispatchEvent(new Event('avatarImageChanged'));
+  };
+
+  const handleZoomChange = (value) => {
+    setImageZoom(value);
+    localStorage.setItem('avatarImageZoom', value);
+    window.dispatchEvent(new Event('avatarImageChanged'));
+  };
+
   if (!identity) return null;
 
   const currentStatus = STATUSES.find(s => s.value === selectedStatus) || STATUSES[0];
@@ -80,8 +132,17 @@ function Profile({ onClose }) {
         <div className="profile-modal-body">
           {/* User Avatar Section */}
           <div className="profile-avatar-section">
-            <div className="profile-avatar-large" style={{ background: selectedColor }}>
-              {identity.username.substring(0, 2).toUpperCase()}
+            <div className="profile-avatar-large" style={{
+              ...(avatarImage ? {
+                backgroundImage: `url(${avatarImage})`,
+                backgroundSize: `${imageZoom}%`,
+                backgroundPosition: `${imagePosition.x}% ${imagePosition.y}%`,
+                backgroundRepeat: 'no-repeat'
+              } : {
+                backgroundImage: selectedColor
+              })
+            }}>
+              {!avatarImage && identity.username.substring(0, 2).toUpperCase()}
             </div>
             <div className="profile-username">{identity.username}</div>
             <div className="profile-status">
@@ -90,28 +151,140 @@ function Profile({ onClose }) {
             </div>
           </div>
 
-          {/* Avatar Color Picker */}
+          {/* Profile Image Upload */}
           <div className="profile-field">
-            <label className="profile-field-label">Avatar Color</label>
-            <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', justifyContent: 'center' }}>
-              {AVATAR_COLORS.map((color, idx) => (
+            <label className="profile-field-label">Profile Image</label>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', alignItems: 'center' }}>
+              <input
+                type="file"
+                id="avatar-upload"
+                accept="image/*"
+                onChange={handleImageUpload}
+                style={{ display: 'none' }}
+              />
+              <div style={{ display: 'flex', gap: '8px', width: '100%' }}>
                 <button
-                  key={idx}
-                  onClick={() => handleColorChange(color)}
+                  onClick={() => document.getElementById('avatar-upload')?.click()}
                   style={{
-                    width: '48px',
-                    height: '48px',
-                    borderRadius: '50%',
-                    background: color,
-                    border: selectedColor === color ? '3px solid var(--terminal-green)' : '2px solid var(--border-secondary)',
-                    cursor: 'pointer',
-                    transition: 'all 0.2s',
-                    boxShadow: selectedColor === color ? '0 0 15px rgba(0, 255, 65, 0.4)' : 'none',
+                    flex: 1,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '8px',
                   }}
-                />
-              ))}
+                >
+                  <User size={16} />
+                  {avatarImage ? 'Change Image' : 'Upload Image'}
+                </button>
+                {avatarImage && (
+                  <button
+                    onClick={handleRemoveImage}
+                    style={{
+                      padding: '8px 16px',
+                      background: 'var(--status-dnd)',
+                      border: 'none',
+                      color: 'white',
+                    }}
+                  >
+                    Remove
+                  </button>
+                )}
+              </div>
+              <p style={{ fontSize: '11px', color: 'var(--text-muted)', textAlign: 'center', margin: 0 }}>
+                Max 500KB • Shared via P2P network
+              </p>
             </div>
           </div>
+
+          {/* Image Position Controls (only when image is uploaded) */}
+          {avatarImage && (
+            <div className="profile-field">
+              <label className="profile-field-label">Adjust Image Position</label>
+
+              {/* Zoom Control */}
+              <div style={{ marginBottom: '16px' }}>
+                <label style={{ fontSize: '12px', color: 'var(--text-muted)', display: 'block', marginBottom: '8px' }}>
+                  Zoom: {imageZoom}%
+                </label>
+                <input
+                  type="range"
+                  min="50"
+                  max="200"
+                  value={imageZoom}
+                  onChange={(e) => handleZoomChange(parseInt(e.target.value))}
+                  style={{
+                    width: '100%',
+                    cursor: 'pointer'
+                  }}
+                />
+              </div>
+
+              {/* Horizontal Position */}
+              <div style={{ marginBottom: '16px' }}>
+                <label style={{ fontSize: '12px', color: 'var(--text-muted)', display: 'block', marginBottom: '8px' }}>
+                  Horizontal Position: {imagePosition.x}%
+                </label>
+                <input
+                  type="range"
+                  min="0"
+                  max="100"
+                  value={imagePosition.x}
+                  onChange={(e) => handlePositionChange('x', parseInt(e.target.value))}
+                  style={{
+                    width: '100%',
+                    cursor: 'pointer'
+                  }}
+                />
+              </div>
+
+              {/* Vertical Position */}
+              <div>
+                <label style={{ fontSize: '12px', color: 'var(--text-muted)', display: 'block', marginBottom: '8px' }}>
+                  Vertical Position: {imagePosition.y}%
+                </label>
+                <input
+                  type="range"
+                  min="0"
+                  max="100"
+                  value={imagePosition.y}
+                  onChange={(e) => handlePositionChange('y', parseInt(e.target.value))}
+                  style={{
+                    width: '100%',
+                    cursor: 'pointer'
+                  }}
+                />
+              </div>
+
+              <p style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '12px', textAlign: 'center' }}>
+                Drag the sliders to position your image perfectly in the circle
+              </p>
+            </div>
+          )}
+
+          {/* Avatar Color Picker (fallback when no image) */}
+          {!avatarImage && (
+            <div className="profile-field">
+              <label className="profile-field-label">Avatar Color</label>
+              <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', justifyContent: 'center' }}>
+                {AVATAR_COLORS.map((color, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => handleColorChange(color)}
+                    style={{
+                      width: '48px',
+                      height: '48px',
+                      borderRadius: '50%',
+                      background: color,
+                      border: selectedColor === color ? '3px solid var(--terminal-green)' : '2px solid var(--border-secondary)',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s',
+                      boxShadow: selectedColor === color ? '0 0 15px rgba(0, 255, 65, 0.4)' : 'none',
+                    }}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Status Selector */}
           <div className="profile-field">

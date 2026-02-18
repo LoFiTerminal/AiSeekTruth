@@ -84,10 +84,20 @@ function createWindow() {
 
 ipcMain.handle('identity:create', async (event, username, password) => {
   try {
+    // Check if identity already exists
+    const existingIdentity = storage.loadIdentity();
+    if (existingIdentity) {
+      console.log('⚠️  WARNING: Overwriting existing identity for user:', existingIdentity.username);
+      console.log('⚠️  New identity will be created for user:', username);
+    } else {
+      console.log('🆕 Creating first identity for user:', username);
+    }
+
     const { identity, encryptedIdentity } = await crypto.createIdentity(username, password);
 
-    // Save to database
+    // Save to database (will overwrite if exists - only 1 identity allowed)
     storage.saveIdentity(encryptedIdentity);
+    console.log('✅ Identity created and saved for:', username);
 
     // Set current identity
     currentIdentity = identity;
@@ -111,17 +121,25 @@ ipcMain.handle('identity:create', async (event, username, password) => {
 
 ipcMain.handle('identity:load', async (event, password) => {
   try {
+    console.log('🔑 Login attempt...');
     const encryptedIdentity = storage.loadIdentity();
 
     if (!encryptedIdentity) {
+      console.log('❌ No identity found in database');
       return { success: false, error: 'No identity found' };
     }
+
+    console.log('✓ Identity found for username:', encryptedIdentity.username);
+    console.log('🔓 Attempting to decrypt with provided password...');
 
     const identity = await crypto.decryptIdentityFromStorage(encryptedIdentity, password);
 
     if (!identity) {
+      console.log('❌ Decryption failed - incorrect password');
       return { success: false, error: 'Invalid password' };
     }
+
+    console.log('✅ Login successful for:', identity.username);
 
     // Set current identity
     currentIdentity = identity;

@@ -9,7 +9,6 @@ function ChatWindow() {
   const { activeContact, activeGroup, messages, groupMessages, identity } = useStore();
   const messagesEndRef = useRef(null);
   const messagesContainerRef = useRef(null);
-  const [showMembers, setShowMembers] = useState(true);
 
   const isGroupChat = !!activeGroup;
   const activeChat = isGroupChat ? activeGroup : activeContact;
@@ -83,7 +82,7 @@ function ChatWindow() {
 
   if (!activeChat) {
     return (
-      <div className="chat-window">
+      <div className="chat-window" style={{ flexDirection: 'column' }}>
         <GlobalChat identity={identity} />
       </div>
     );
@@ -119,22 +118,6 @@ function ChatWindow() {
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            {isGroupChat && (
-              <button
-                onClick={() => setShowMembers(!showMembers)}
-                style={{
-                  padding: '4px 8px',
-                  fontSize: '10px',
-                  minHeight: 'auto',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '4px'
-                }}
-              >
-                <Users size={12} />
-                {showMembers ? 'Hide' : 'Show'}
-              </button>
-            )}
             <div className="encryption-indicator">
               <Lock size={12} />
               E2E
@@ -204,9 +187,9 @@ function ChatWindow() {
         <MessageInput />
       </div>
 
-      {/* Group Members Panel */}
-      {isGroupChat && showMembers && (
-        <GroupMembers group={activeGroup} onClose={() => setShowMembers(false)} />
+      {/* Group Members Panel - Always visible for group chats (Discord-style) */}
+      {isGroupChat && activeGroup && (
+        <GroupMembers group={activeGroup} />
       )}
     </div>
   );

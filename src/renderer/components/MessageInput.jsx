@@ -1,6 +1,7 @@
 import { useState, useRef } from 'react';
 import { Send } from 'lucide-react';
 import useStore from '../store';
+import soundManager from '../utils/sounds';
 
 function MessageInput({ onSendMessage, placeholder, disabled }) {
   const { activeContact, activeGroup, identity, addMessage, addGroupMessage } = useStore();
@@ -71,6 +72,7 @@ function MessageInput({ onSendMessage, placeholder, disabled }) {
         if (result.success) {
           // Replace optimistic message with actual message
           addGroupMessage(activeGroup.id, result.message);
+          soundManager.messageSent();
         } else {
           console.error('Failed to send group message:', result.error);
         }
@@ -96,6 +98,7 @@ function MessageInput({ onSendMessage, placeholder, disabled }) {
         if (result.success) {
           // Replace optimistic message with actual message
           addMessage(activeContact.publicKey, result.message);
+          soundManager.messageSent();
         } else {
           console.error('Failed to send message:', result.error);
         }

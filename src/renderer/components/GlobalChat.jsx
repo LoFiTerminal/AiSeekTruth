@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Send } from 'lucide-react';
+import soundManager from '../utils/sounds';
 
 export default function GlobalChat({ identity }) {
   const [messages, setMessages] = useState([]);
@@ -7,24 +8,39 @@ export default function GlobalChat({ identity }) {
   const [inputText, setInputText] = useState('');
   const [isSending, setIsSending] = useState(false);
   const [connectionStatus, setConnectionStatus] = useState('connecting');
+  const [onlineUsers, setOnlineUsers] = useState(new Set());
   const messagesEndRef = useRef(null);
   const textareaRef = useRef(null);
 
-  // Load initial messages
+  // Don't load old messages on startup - only show new messages from current session
   useEffect(() => {
-    loadMessages();
+    // Don't load old messages
+    setIsLoading(false);
+
+    // Add yourself to online users
+    if (identity?.publicKey) {
+      setOnlineUsers(new Set([identity.publicKey]));
+    }
 
     // Check connection status
     setTimeout(() => {
       setConnectionStatus('connected');
     }, 2000);
-  }, []);
+  }, [identity]);
 
   // Listen for incoming messages
   useEffect(() => {
     const unsubscribe = window.api.onGlobalMessage((message) => {
       console.log('Received global message:', message);
       setConnectionStatus('connected');
+
+      // Track online users (users who sent messages in last 5 minutes)
+      setOnlineUsers((prev) => {
+        const updated = new Set(prev);
+        updated.add(message.publicKey);
+        return updated;
+      });
+
       setMessages((prevMessages) => {
         // Check if message already exists
         if (prevMessages.some(m => m.id === message.id)) {
@@ -103,6 +119,7 @@ export default function GlobalChat({ identity }) {
         setInputText(messageText); // Restore message on failure
       } else {
         console.log('GlobalChat: Message sent successfully');
+        soundManager.messageSent();
       }
     } catch (error) {
       console.error('GlobalChat: Error sending message:', error);
@@ -247,12 +264,19 @@ export default function GlobalChat({ identity }) {
   };
 
   return (
-    <div style={{
-      height: '100%',
-      display: 'flex',
-      flexDirection: 'column',
-      backgroundColor: '#1C1C1E'
-    }}>
+    <>
+      <style>{`
+        @keyframes pulse {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.5; }
+        }
+      `}</style>
+      <div style={{
+        height: '100%',
+        display: 'flex',
+        flexDirection: 'column',
+        backgroundColor: '#1C1C1E'
+      }}>
       {/* Header */}
       <div style={{
         padding: '1rem',
@@ -260,33 +284,26 @@ export default function GlobalChat({ identity }) {
         borderBottom: '1px solid #3A3A3C',
         display: 'flex',
         alignItems: 'center',
-        justifyContent: 'space-between'
+        gap: '0.75rem'
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-          <div style={{ fontSize: '2rem' }}>🌍</div>
-          <div>
-            <h2 style={{ margin: 0, fontSize: '1.2rem', color: 'white' }}>
-              Global Chat
-            </h2>
-            <p style={{ margin: 0, fontSize: '0.85rem', color: '#888' }}>
-              Public community channel
-            </p>
-          </div>
+        <div style={{ fontSize: '2rem' }}>🌍</div>
+        <div style={{ flex: 1 }}>
+          <h2 style={{ margin: 0, fontSize: '1.2rem', color: 'white', fontWeight: '600' }}>
+            Global Chat
+          </h2>
+          <p style={{ margin: 0, fontSize: '0.85rem', color: '#888' }}>
+            Public community channel
+          </p>
         </div>
         <div style={{
-          fontSize: '0.85rem',
-          color: connectionStatus === 'connected' ? '#5AC8FA' : '#FF453A',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '0.5rem'
+          fontFamily: 'monospace',
+          fontSize: '1.5rem',
+          fontWeight: 'bold',
+          color: '#00ff41',
+          textShadow: '0 0 10px rgba(0, 255, 65, 0.6)',
+          opacity: 0.8
         }}>
-          <span style={{
-            width: '8px',
-            height: '8px',
-            borderRadius: '50%',
-            backgroundColor: connectionStatus === 'connected' ? '#5AC8FA' : '#FF453A'
-          }}></span>
-          {connectionStatus === 'connected' ? 'Connected' : 'Connecting...'}
+          [AST]
         </div>
       </div>
 
@@ -303,13 +320,17 @@ export default function GlobalChat({ identity }) {
       {/* Message Input */}
       <div style={{
         borderTop: '1px solid #3A3A3C',
-        backgroundColor: '#2C2C2E'
+        backgroundColor: '#2C2C2E',
+        padding: '1rem'
       }}>
         <form onSubmit={handleSubmit} style={{
           display: 'flex',
-          gap: '0.75rem',
-          padding: '1rem',
-          alignItems: 'flex-end'
+          gap: '0.5rem',
+          alignItems: 'flex-end',
+          backgroundColor: '#1C1C1E',
+          borderRadius: '8px',
+          border: '1px solid #3A3A3C',
+          padding: '0.5rem'
         }}>
           <textarea
             ref={textareaRef}
@@ -321,46 +342,47 @@ export default function GlobalChat({ identity }) {
             rows={1}
             style={{
               flex: 1,
-              padding: '0.75rem',
-              borderRadius: '8px',
-              border: '1px solid #3A3A3C',
-              backgroundColor: '#1C1C1E',
+              padding: '0.5rem',
+              border: 'none',
+              backgroundColor: 'transparent',
               color: 'white',
               fontSize: '1rem',
               resize: 'none',
               fontFamily: 'inherit',
               outline: 'none',
-              minHeight: '44px',
-              maxHeight: '120px'
+              minHeight: '32px',
+              maxHeight: '120px',
+              lineHeight: '1.5'
             }}
           />
           <button
             type="submit"
             disabled={isSending || !inputText.trim() || connectionStatus !== 'connected'}
             style={{
-              padding: '0.75rem 1.5rem',
-              borderRadius: '8px',
+              padding: '0.5rem 1rem',
+              borderRadius: '6px',
               border: 'none',
               backgroundColor: (!inputText.trim() || isSending || connectionStatus !== 'connected') ? '#3A3A3C' : '#007AFF',
               color: 'white',
-              fontSize: '1rem',
+              fontSize: '0.9rem',
               fontWeight: '600',
               cursor: (!inputText.trim() || isSending || connectionStatus !== 'connected') ? 'not-allowed' : 'pointer',
               display: 'flex',
               alignItems: 'center',
-              gap: '0.5rem',
-              minHeight: '44px',
+              gap: '0.4rem',
               transition: 'background-color 0.2s',
-              whiteSpace: 'nowrap'
+              whiteSpace: 'nowrap',
+              height: '32px',
+              flexShrink: 0
             }}
           >
             {isSending ? (
-              <span>Sending...</span>
+              <span>...</span>
             ) : connectionStatus !== 'connected' ? (
-              <span>Connecting...</span>
+              <span>...</span>
             ) : (
               <>
-                <Send size={16} />
+                <Send size={14} />
                 <span>Send</span>
               </>
             )}
@@ -368,5 +390,6 @@ export default function GlobalChat({ identity }) {
         </form>
       </div>
     </div>
+    </>
   );
 }

@@ -62,6 +62,13 @@ class SoundManager {
     setTimeout(() => this.playBeep(1400, 80), 100);
   }
 
+  // Contact request received (DM request)
+  contactRequest() {
+    this.playBeep(900, 100);
+    setTimeout(() => this.playBeep(1100, 100), 120);
+    setTimeout(() => this.playBeep(900, 100), 240);
+  }
+
   // Error sound
   error() {
     this.playBeep(300, 200);

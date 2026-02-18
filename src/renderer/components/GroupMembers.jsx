@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { User, UserPlus, UserMinus, Crown, X } from 'lucide-react';
 import useStore from '../store';
 
-function GroupMembers({ group, onClose }) {
+function GroupMembers({ group }) {
   const { contacts, identity } = useStore();
   const [members, setMembers] = useState([]);
   const [showAddMember, setShowAddMember] = useState(false);
@@ -72,7 +72,7 @@ function GroupMembers({ group, onClose }) {
       const result = await window.api.removeGroupMember(group.id, identity.publicKey);
 
       if (result.success) {
-        onClose();
+        // Group left successfully, UI will update via store
       }
     } catch (error) {
       console.error('Failed to leave group:', error);
@@ -89,30 +89,35 @@ function GroupMembers({ group, onClose }) {
 
   return (
     <div className="group-members-panel">
-      {/* Header */}
+      {/* Header with Admin Controls */}
       <div className="group-members-header">
         <h3>Members ({members.length})</h3>
-        {onClose && (
-          <button className="close-button" onClick={onClose}>
-            <X size={16} />
+
+        {/* Admin Add Member Button at Top */}
+        {isAdmin && availableContacts.length > 0 && (
+          <button
+            className="add-member-button"
+            onClick={() => setShowAddMember(!showAddMember)}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              justifyContent: 'center',
+              padding: '8px 12px',
+              fontSize: '12px',
+              fontWeight: '600',
+              marginTop: '12px'
+            }}
+          >
+            <UserPlus size={14} />
+            Add Member
           </button>
         )}
       </div>
 
-      {/* Add Member Button */}
-      {isAdmin && availableContacts.length > 0 && (
-        <button
-          className="add-member-button"
-          onClick={() => setShowAddMember(!showAddMember)}
-        >
-          <UserPlus size={14} />
-          Add Member
-        </button>
-      )}
-
       {/* Add Member Form */}
       {showAddMember && (
-        <div className="add-member-form">
+        <div className="add-member-form" style={{ padding: '12px' }}>
           <select
             value={selectedContact}
             onChange={(e) => setSelectedContact(e.target.value)}
@@ -137,16 +142,35 @@ function GroupMembers({ group, onClose }) {
         </div>
       )}
 
-      {/* Members List */}
-      <div className="group-members-list">
+      {/* Members List - Scrollable */}
+      <div className="group-members-list" style={{ flex: 1, overflowY: 'auto' }}>
         {members.map(member => {
           const isMe = member.publicKey === identity?.publicKey;
           const canRemove = isAdmin && !isMe && member.role !== 'admin';
 
+          // Get member's avatar image from localStorage if it's the current user
+          const memberAvatarImage = isMe ? localStorage.getItem('avatarImage') : null;
+          const memberAvatarColor = isMe
+            ? (localStorage.getItem('avatarColor') || 'linear-gradient(135deg, #00ff41 0%, #00ffff 100%)')
+            : 'linear-gradient(135deg, #00ff41 0%, #00ffff 100%)';
+
           return (
             <div key={member.publicKey} className="group-member-item">
-              <div className="member-avatar">
-                <User size={16} />
+              <div className="member-avatar" style={{
+                ...(memberAvatarImage ? {
+                  backgroundImage: `url(${memberAvatarImage})`,
+                  backgroundSize: 'cover',
+                  backgroundPosition: 'center',
+                  backgroundRepeat: 'no-repeat'
+                } : {
+                  backgroundImage: memberAvatarColor
+                })
+              }}>
+                {!memberAvatarImage && (
+                  <span style={{ fontSize: '12px', fontWeight: '600' }}>
+                    {member.username.substring(0, 2).toUpperCase()}
+                  </span>
+                )}
               </div>
 
               <div className="member-info">
@@ -176,15 +200,44 @@ function GroupMembers({ group, onClose }) {
         })}
       </div>
 
-      {/* Leave Group Button */}
-      {!isCreator && (
+      {/* Bottom Actions - Always visible */}
+      <div style={{
+        padding: '12px',
+        borderTop: '1px solid var(--border-secondary)',
+        background: 'var(--bg-tertiary)',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '8px'
+      }}>
         <button
-          className="leave-group-button"
           onClick={handleLeaveGroup}
+          style={{
+            width: '100%',
+            padding: '10px 12px',
+            fontSize: '13px',
+            fontWeight: '600',
+            background: '#ff4444',
+            color: 'white',
+            border: 'none',
+            borderRadius: '6px',
+            cursor: 'pointer',
+            transition: 'background-color 0.2s',
+          }}
+          onMouseEnter={(e) => e.target.style.background = '#ff6666'}
+          onMouseLeave={(e) => e.target.style.background = '#ff4444'}
         >
-          Leave Group
+          {isCreator ? 'Delete Group' : 'Leave Group'}
         </button>
-      )}
+        {isCreator && (
+          <div style={{
+            fontSize: '10px',
+            color: 'var(--text-muted)',
+            textAlign: 'center'
+          }}>
+            As creator, this will delete the group for everyone
+          </div>
+        )}
+      </div>
     </div>
   );
 }

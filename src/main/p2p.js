@@ -786,11 +786,26 @@ class P2PNetwork extends EventEmitter {
     // Keep track of seen message IDs to prevent duplicates
     const seenMessages = new Set();
 
+    // Only show messages from current session (ignore old messages)
+    const sessionStartTime = Date.now();
+    console.log('   Session start time:', new Date(sessionStartTime).toLocaleTimeString());
+    console.log('   Will only show messages after this time');
+
     this.gun.get(globalChatPath).map().on((messageData, messageId) => {
       console.log('🔔 Gun.js event fired:', messageId, messageData);
 
       if (!messageData || typeof messageData !== 'object') {
         console.log('⚠️ Invalid message data, skipping');
+        return;
+      }
+
+      // Filter out messages from before this session started
+      if (messageData.timestamp && messageData.timestamp < sessionStartTime) {
+        console.log('⏭️ Skipping old message from before session start:', {
+          messageId,
+          messageTime: new Date(messageData.timestamp).toLocaleTimeString(),
+          sessionStart: new Date(sessionStartTime).toLocaleTimeString()
+        });
         return;
       }
 

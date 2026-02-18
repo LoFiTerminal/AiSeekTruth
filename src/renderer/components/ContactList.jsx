@@ -4,6 +4,7 @@ import useStore from '../store';
 import Profile from './Profile';
 import ContactInfo from './ContactInfo';
 import ConnectionStatus from './ConnectionStatus';
+import soundManager from '../utils/sounds';
 
 function ContactList() {
   const {
@@ -30,8 +31,16 @@ function ContactList() {
   const [userStatus, setUserStatus] = useState(
     localStorage.getItem('userStatus') || 'online'
   );
+  const [showStatusMenu, setShowStatusMenu] = useState(false);
+  const [copySuccess, setCopySuccess] = useState(false);
+  const [avatarImage, setAvatarImage] = useState(localStorage.getItem('avatarImage') || null);
+  const [imagePosition, setImagePosition] = useState({
+    x: parseInt(localStorage.getItem('avatarImageX') || '50'),
+    y: parseInt(localStorage.getItem('avatarImageY') || '50')
+  });
+  const [imageZoom, setImageZoom] = useState(parseInt(localStorage.getItem('avatarImageZoom') || '100'));
 
-  // Listen for avatar color and status changes
+  // Listen for avatar color, status, and image changes
   useEffect(() => {
     const handleAvatarChange = () => {
       setAvatarColor(localStorage.getItem('avatarColor') || 'linear-gradient(135deg, #00ff41 0%, #00ffff 100%)');
@@ -39,15 +48,60 @@ function ContactList() {
     const handleStatusChange = () => {
       setUserStatus(localStorage.getItem('userStatus') || 'online');
     };
+    const handleAvatarImageChange = () => {
+      setAvatarImage(localStorage.getItem('avatarImage') || null);
+      setImagePosition({
+        x: parseInt(localStorage.getItem('avatarImageX') || '50'),
+        y: parseInt(localStorage.getItem('avatarImageY') || '50')
+      });
+      setImageZoom(parseInt(localStorage.getItem('avatarImageZoom') || '100'));
+    };
 
     window.addEventListener('avatarColorChanged', handleAvatarChange);
     window.addEventListener('userStatusChanged', handleStatusChange);
+    window.addEventListener('avatarImageChanged', handleAvatarImageChange);
 
     return () => {
       window.removeEventListener('avatarColorChanged', handleAvatarChange);
       window.removeEventListener('userStatusChanged', handleStatusChange);
+      window.removeEventListener('avatarImageChanged', handleAvatarImageChange);
     };
   }, []);
+
+  // Close status menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (showStatusMenu && !e.target.closest('.status-menu-container')) {
+        setShowStatusMenu(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [showStatusMenu]);
+
+  // Track online users from global chat
+  useEffect(() => {
+    // Add yourself to online users
+    if (identity?.publicKey) {
+      setOnlineUsers(new Set([identity.publicKey]));
+    }
+
+    // Listen for global messages to track online users
+    const unsubscribe = window.api.onGlobalMessage?.((message) => {
+      if (message.publicKey) {
+        setOnlineUsers((prev) => {
+          const updated = new Set(prev);
+          updated.add(message.publicKey);
+          return updated;
+        });
+      }
+    });
+
+    return () => {
+      if (unsubscribe) unsubscribe();
+    };
+  }, [identity]);
 
   // Load contact requests
   useEffect(() => {
@@ -75,6 +129,7 @@ function ContactList() {
     // Subscribe to contact request events
     const unsubReceived = window.api.onContactRequestReceived((request) => {
       setIncomingRequests(prev => [request, ...prev]);
+      soundManager.contactRequest();
     });
 
     const unsubSent = window.api.onContactRequestSent((request) => {
@@ -120,12 +175,14 @@ function ContactList() {
   const [newGroup, setNewGroup] = useState({
     name: '',
     description: '',
+    image: null,
   });
   const [groupError, setGroupError] = useState('');
 
   const [incomingRequests, setIncomingRequests] = useState([]);
   const [outgoingRequests, setOutgoingRequests] = useState([]);
   const [showRequests, setShowRequests] = useState(false);
+  const [onlineUsers, setOnlineUsers] = useState(new Set());
 
   const handleAddContact = async () => {
     setAddError('');
@@ -212,6 +269,7 @@ function ContactList() {
         id: `group_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
         name: newGroup.name.trim(),
         description: newGroup.description.trim(),
+        image: newGroup.image, // Include group image
         creatorPublicKey: identity.publicKey,
         creatorUsername: identity.username,
       };
@@ -220,7 +278,7 @@ function ContactList() {
 
       if (result.success) {
         addGroup(result.group);
-        setNewGroup({ name: '', description: '' });
+        setNewGroup({ name: '', description: '', image: null });
         toggleCreateGroup();
       } else {
         setGroupError(result.error || 'Failed to create group');
@@ -229,6 +287,24 @@ function ContactList() {
       console.error('Error creating group:', error);
       setGroupError('Failed to create group');
     }
+  };
+
+  const handleGroupImageUpload = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Check file size (max 500KB for P2P sharing)
+    if (file.size > 500 * 1024) {
+      setGroupError('Image too large! Please choose an image smaller than 500KB.');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const base64Image = event.target.result;
+      setNewGroup({ ...newGroup, image: base64Image });
+    };
+    reader.readAsDataURL(file);
   };
 
   const handleContactClick = (contact) => {
@@ -292,6 +368,48 @@ function ContactList() {
     return `${Math.floor(diff / 86400000)}d ago`;
   };
 
+  const handleStatusChange = async (newStatus) => {
+    setUserStatus(newStatus);
+    localStorage.setItem('userStatus', newStatus);
+    window.dispatchEvent(new Event('userStatusChanged'));
+    setShowStatusMenu(false);
+
+    // Update status in backend
+    try {
+      await window.api.updateStatus(newStatus);
+    } catch (error) {
+      console.error('Failed to update status:', error);
+    }
+  };
+
+  const handleCopyPublicKey = () => {
+    if (identity?.publicKey) {
+      navigator.clipboard.writeText(identity.publicKey);
+      setCopySuccess(true);
+      setTimeout(() => setCopySuccess(false), 2000);
+    }
+  };
+
+  const getStatusColor = (status) => {
+    switch (status) {
+      case 'online': return '#30D158';
+      case 'away': return '#FFD60A';
+      case 'busy': return '#FF453A';
+      case 'offline': return '#636366';
+      default: return '#30D158';
+    }
+  };
+
+  const getStatusLabel = (status) => {
+    switch (status) {
+      case 'online': return 'Online';
+      case 'away': return 'Away';
+      case 'busy': return 'Busy';
+      case 'offline': return 'Offline';
+      default: return 'Online';
+    }
+  };
+
   return (
     <div className="contact-list">
       {showProfile && <Profile onClose={() => setShowProfile(false)} />}
@@ -315,61 +433,257 @@ function ContactList() {
       )}
 
       {/* User Info */}
-      <div className="user-info">
-        <div className="user-avatar" style={{ background: avatarColor, position: 'relative' }}>
-          {identity?.username ? identity.username.substring(0, 2).toUpperCase() : 'U'}
-          <span
-            className={`status-dot ${userStatus}`}
+      <div className="user-info" style={{
+        padding: '20px',
+        backgroundColor: 'var(--bg-secondary)',
+        borderBottom: '1px solid var(--border-secondary)',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '16px'
+      }}>
+        {/* Avatar and username section */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+          <div className="user-avatar" style={{
+            ...(avatarImage ? {
+              backgroundImage: `url(${avatarImage})`,
+              backgroundSize: `${imageZoom}%`,
+              backgroundPosition: `${imagePosition.x}% ${imagePosition.y}%`,
+              backgroundRepeat: 'no-repeat'
+            } : {
+              backgroundImage: avatarColor
+            }),
+            position: 'relative',
+            width: '56px',
+            height: '56px',
+            fontSize: '1.4rem',
+            flexShrink: 0
+          }}>
+            {!avatarImage && (identity?.username ? identity.username.substring(0, 2).toUpperCase() : 'U')}
+            <span
+              style={{
+                position: 'absolute',
+                bottom: '-2px',
+                right: '-2px',
+                width: '16px',
+                height: '16px',
+                borderRadius: '50%',
+                backgroundColor: getStatusColor(userStatus),
+                border: '3px solid var(--bg-secondary)',
+                boxShadow: '0 0 8px rgba(0, 0, 0, 0.5)'
+              }}
+            />
+          </div>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{
+              fontSize: '1.1rem',
+              fontWeight: '700',
+              marginBottom: '6px',
+              color: 'var(--text-primary)',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap'
+            }}>
+              {identity?.username || 'User'}
+            </div>
+            {/* Status selector */}
+            <div className="status-menu-container" style={{ position: 'relative' }}>
+              <button
+                onClick={() => setShowStatusMenu(!showStatusMenu)}
+                style={{
+                  background: 'rgba(0, 255, 65, 0.05)',
+                  border: '1px solid rgba(0, 255, 65, 0.2)',
+                  color: getStatusColor(userStatus),
+                  cursor: 'pointer',
+                  padding: '4px 10px',
+                  fontSize: '0.85rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  minHeight: 'auto',
+                  borderRadius: '12px',
+                  fontWeight: '500'
+                }}
+              >
+                <span style={{
+                  width: '6px',
+                  height: '6px',
+                  borderRadius: '50%',
+                  backgroundColor: getStatusColor(userStatus)
+                }}></span>
+                <span>{getStatusLabel(userStatus)}</span>
+                <span style={{ fontSize: '0.65rem', marginLeft: '2px' }}>▼</span>
+              </button>
+              {showStatusMenu && (
+                <div style={{
+                  position: 'absolute',
+                  top: '100%',
+                  left: 0,
+                  marginTop: '4px',
+                  backgroundColor: 'var(--bg-tertiary)',
+                  border: '1px solid var(--border-primary)',
+                  borderRadius: '8px',
+                  padding: '6px',
+                  zIndex: 1000,
+                  minWidth: '140px',
+                  boxShadow: '0 8px 24px rgba(0, 0, 0, 0.4)'
+                }}>
+                  {['online', 'away', 'busy', 'offline'].map((status) => (
+                    <button
+                      key={status}
+                      onClick={() => handleStatusChange(status)}
+                      style={{
+                        width: '100%',
+                        padding: '10px 12px',
+                        background: userStatus === status ? 'rgba(0, 255, 65, 0.15)' : 'transparent',
+                        border: 'none',
+                        color: getStatusColor(status),
+                        cursor: 'pointer',
+                        textAlign: 'left',
+                        borderRadius: '6px',
+                        fontSize: '0.9rem',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '10px',
+                        minHeight: 'auto',
+                        fontWeight: userStatus === status ? '600' : '400',
+                        transition: 'all 0.15s'
+                      }}
+                      onMouseEnter={(e) => {
+                        if (userStatus !== status) {
+                          e.currentTarget.style.background = 'rgba(0, 255, 65, 0.05)';
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        if (userStatus !== status) {
+                          e.currentTarget.style.background = 'transparent';
+                        }
+                      }}
+                    >
+                      <span style={{
+                        width: '10px',
+                        height: '10px',
+                        borderRadius: '50%',
+                        backgroundColor: getStatusColor(status),
+                        boxShadow: `0 0 6px ${getStatusColor(status)}`
+                      }}></span>
+                      {getStatusLabel(status)}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+          <button
+            onClick={() => setShowProfile(true)}
+            className="secondary"
             style={{
-              position: 'absolute',
-              bottom: '-2px',
-              right: '-2px',
-              width: '14px',
-              height: '14px',
-              borderRadius: '50%',
-              border: '3px solid var(--bg-tertiary)',
+              padding: '10px',
+              minHeight: 'auto',
+              borderRadius: '8px',
+              flexShrink: 0
             }}
-          />
+            title="Settings"
+          >
+            <Settings size={20} />
+          </button>
         </div>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div className="user-name">{identity?.username || 'User'}</div>
-          <div className="user-key">
-            {identity?.publicKey
-              ? `${identity.publicKey.substring(0, 12)}...${identity.publicKey.substring(
-                  identity.publicKey.length - 4
-                )}`
-              : ''}
+
+        {/* Public key section - simplified display */}
+        <div style={{
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '8px'
+        }}>
+          <div style={{
+            fontSize: '0.7rem',
+            fontWeight: '700',
+            color: 'var(--text-muted)',
+            textTransform: 'uppercase',
+            letterSpacing: '0.5px'
+          }}>
+            Your Public Key
+          </div>
+          <div style={{
+            display: 'flex',
+            gap: '8px',
+            alignItems: 'center'
+          }}>
+            <div style={{
+              flex: 1,
+              backgroundColor: 'var(--bg-tertiary)',
+              borderRadius: '8px',
+              padding: '10px 12px',
+              fontFamily: "'Courier New', monospace",
+              fontSize: '0.8rem',
+              color: 'var(--text-secondary)',
+              border: '1px solid var(--border-secondary)',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
+              fontWeight: '500'
+            }}>
+              {identity?.publicKey ?
+                `${identity.publicKey.substring(0, 10)}...${identity.publicKey.substring(identity.publicKey.length - 10)}`
+                : ''}
+            </div>
+            <button
+              onClick={handleCopyPublicKey}
+              style={{
+                background: copySuccess ? 'var(--terminal-green)' : 'rgba(0, 255, 65, 0.15)',
+                border: '1px solid var(--terminal-green)',
+                color: copySuccess ? 'black' : 'var(--terminal-green)',
+                cursor: 'pointer',
+                padding: '10px 16px',
+                borderRadius: '8px',
+                fontSize: '0.8rem',
+                fontWeight: '700',
+                minHeight: 'auto',
+                whiteSpace: 'nowrap',
+                transition: 'all 0.2s',
+                flexShrink: 0,
+                boxShadow: copySuccess ? '0 0 12px rgba(0, 255, 65, 0.4)' : 'none'
+              }}
+            >
+              {copySuccess ? '✓' : 'Copy'}
+            </button>
           </div>
         </div>
-        <button
-          onClick={() => setShowProfile(true)}
-          className="secondary"
-          style={{
-            padding: '6px',
-            minHeight: 'auto',
-          }}
-          title="View Profile & Settings"
-        >
-          <Settings size={18} />
-        </button>
       </div>
 
       {/* Add Buttons */}
-      <div style={{ padding: '12px', display: 'flex', gap: '8px' }}>
+      <div style={{ padding: '16px', display: 'flex', gap: '10px', backgroundColor: 'var(--bg-secondary)', borderBottom: '1px solid var(--border-secondary)' }}>
         <button
           className="add-contact-btn"
           onClick={toggleAddContact}
-          style={{ flex: 1 }}
+          style={{
+            flex: 1,
+            padding: '12px 16px',
+            fontWeight: '600',
+            fontSize: '0.9rem',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '8px'
+          }}
         >
-          <Plus size={16} />
+          <Plus size={18} />
           DM
         </button>
         <button
           className="add-contact-btn"
           onClick={toggleCreateGroup}
-          style={{ flex: 1 }}
+          style={{
+            flex: 1,
+            padding: '12px 16px',
+            fontWeight: '600',
+            fontSize: '0.9rem',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '8px'
+          }}
         >
-          <Plus size={16} />
+          <Plus size={18} />
           Group
         </button>
       </div>
@@ -508,6 +822,72 @@ function ContactList() {
               }
               placeholder="What's this group about?"
             />
+          </div>
+
+          {/* Group Image Upload */}
+          <div className="form-group">
+            <label>Group Image (optional)</label>
+            <input
+              type="file"
+              id="group-image-upload"
+              accept="image/*"
+              onChange={handleGroupImageUpload}
+              style={{ display: 'none' }}
+            />
+            {newGroup.image ? (
+              <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                <div style={{
+                  width: '56px',
+                  height: '56px',
+                  borderRadius: '8px',
+                  backgroundImage: `url(${newGroup.image})`,
+                  backgroundSize: 'cover',
+                  backgroundPosition: 'center',
+                  border: '2px solid var(--border-secondary)',
+                  flexShrink: 0
+                }} />
+                <div style={{ display: 'flex', gap: '8px', flex: 1 }}>
+                  <button
+                    type="button"
+                    onClick={() => document.getElementById('group-image-upload')?.click()}
+                    style={{
+                      flex: 1,
+                      padding: '8px 12px',
+                      fontSize: '12px'
+                    }}
+                  >
+                    Change
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setNewGroup({ ...newGroup, image: null })}
+                    style={{
+                      flex: 1,
+                      padding: '8px 12px',
+                      fontSize: '12px',
+                      background: 'var(--status-dnd)'
+                    }}
+                  >
+                    Remove
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => document.getElementById('group-image-upload')?.click()}
+                style={{
+                  width: '100%',
+                  padding: '8px 12px',
+                  fontSize: '12px'
+                }}
+              >
+                Upload Image
+              </button>
+            )}
+            <p style={{ fontSize: '11px', color: 'var(--text-muted)', margin: '8px 0 0 0' }}>
+              Max 500KB • Shared via P2P network
+            </p>
           </div>
 
           {groupError && (
@@ -729,30 +1109,30 @@ function ContactList() {
           {contacts.length === 0 ? (
             <div className="contacts-empty">
               <div style={{
-                padding: '24px 16px',
+                padding: '12px 12px',
                 textAlign: 'center',
                 color: 'var(--text-muted)',
-                lineHeight: '1.6',
+                lineHeight: '1.5',
               }}>
-                <User size={48} style={{ opacity: 0.3, marginBottom: '12px', color: 'var(--terminal-green)' }} />
-                <p style={{ fontSize: '14px', fontWeight: '600', marginBottom: '8px', color: 'var(--text-secondary)' }}>
+                <User size={32} style={{ opacity: 0.3, marginBottom: '8px', color: 'var(--terminal-green)' }} />
+                <p style={{ fontSize: '13px', fontWeight: '600', marginBottom: '6px', color: 'var(--text-secondary)' }}>
                   No contacts yet
                 </p>
-                <p style={{ fontSize: '12px', marginBottom: '16px' }}>
+                <p style={{ fontSize: '11px', marginBottom: '10px' }}>
                   Click <strong style={{ color: 'var(--terminal-green)' }}>+ DM</strong> above to add your first contact
                 </p>
                 <div style={{
                   background: 'rgba(0, 255, 65, 0.05)',
                   border: '1px solid rgba(0, 255, 65, 0.2)',
                   borderRadius: '6px',
-                  padding: '12px',
-                  fontSize: '11px',
+                  padding: '8px',
+                  fontSize: '10px',
                   textAlign: 'left',
                 }}>
-                  <strong style={{ color: 'var(--terminal-green)', display: 'block', marginBottom: '6px' }}>
+                  <strong style={{ color: 'var(--terminal-green)', display: 'block', marginBottom: '4px' }}>
                     Quick Start:
                   </strong>
-                  <div style={{ fontSize: '11px', lineHeight: '1.5' }}>
+                  <div style={{ fontSize: '10px', lineHeight: '1.4' }}>
                     1. Get your public key from <Settings size={10} style={{ display: 'inline', verticalAlign: 'middle' }} /> Settings<br />
                     2. Share it with a friend<br />
                     3. Get their key and add them
@@ -854,8 +1234,15 @@ function ContactList() {
                 onClick={() => handleGroupClick(group)}
                 style={{ position: 'relative' }}
               >
-                <div className="contact-avatar">
-                  <Hash size={16} />
+                <div className="contact-avatar" style={{
+                  ...(group.image ? {
+                    backgroundImage: `url(${group.image})`,
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center',
+                    backgroundRepeat: 'no-repeat'
+                  } : {})
+                }}>
+                  {!group.image && <Hash size={16} />}
                 </div>
 
                 <div className="contact-info">
@@ -899,8 +1286,28 @@ function ContactList() {
         background: 'var(--bg-tertiary)',
         display: 'flex',
         alignItems: 'center',
-        justifyContent: 'flex-end',
+        justifyContent: 'space-between',
+        gap: '12px',
       }}>
+        {/* Online Users Counter */}
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '6px',
+          fontSize: '11px',
+          fontWeight: '600',
+          color: 'var(--text-secondary)',
+        }}>
+          <span style={{
+            width: '8px',
+            height: '8px',
+            borderRadius: '50%',
+            backgroundColor: 'var(--terminal-green)',
+            animation: 'pulse 2s infinite',
+          }}></span>
+          <span>{onlineUsers.size} online</span>
+        </div>
+
         <ConnectionStatus />
       </div>
     </div>

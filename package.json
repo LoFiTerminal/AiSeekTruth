@@ -1,6 +1,6 @@
 {
   "name": "aiseektruth",
-  "version": "1.0.0",
+  "version": "1.2.0",
   "description": "Decentralized encrypted P2P chat application with Signal Protocol encryption",
   "main": "dist-electron/main.js",
   "author": {
@@ -25,7 +25,7 @@
     "icons": "node scripts/generate-icons.js"
   },
   "dependencies": {
-    "better-sqlite3": "^11.7.0",
+    "better-sqlite3": "^11.10.0",
     "gun": "^0.2020.1240",
     "libsodium-wrappers-sumo": "^0.7.13",
     "lucide-react": "^0.303.0",
@@ -34,6 +34,7 @@
     "zustand": "^4.4.7"
   },
   "devDependencies": {
+    "@electron/rebuild": "^4.0.3",
     "@resvg/resvg-js": "^2.6.2",
     "@vitejs/plugin-react": "^4.2.1",
     "concurrently": "^9.1.0",
