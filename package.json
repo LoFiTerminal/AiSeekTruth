@@ -1,6 +1,6 @@
 {
   "name": "aiseektruth",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "Decentralized encrypted P2P chat application with Signal Protocol encryption",
   "main": "dist-electron/main.js",
   "author": {
@@ -73,8 +73,14 @@
     },
     "win": {
       "target": [
-        "nsis",
-        "portable"
+        {
+          "target": "nsis",
+          "arch": ["x64"]
+        },
+        {
+          "target": "portable",
+          "arch": ["x64"]
+        }
       ],
       "icon": "build/icons/icon.ico"
     },
@@ -89,8 +95,14 @@
     "nsis": {
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,
+      "allowElevation": true,
+      "installerIcon": "build/icons/icon.ico",
+      "uninstallerIcon": "build/icons/icon.ico",
       "createDesktopShortcut": true,
-      "createStartMenuShortcut": true
+      "createStartMenuShortcut": true,
+      "shortcutName": "AiSeekTruth",
+      "perMachine": false,
+      "runAfterFinish": true
     }
   }
 }
