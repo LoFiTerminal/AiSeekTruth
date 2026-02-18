@@ -670,17 +670,32 @@ class MessagingService extends EventEmitter {
       throw new Error('P2P network not initialized');
     }
 
-    // Subscribe to incoming contact requests
+    // FIRST: Check for any pending requests that were sent while we were offline
+    console.log('🔍 Checking for pending contact requests...');
+    this.p2p.checkPendingContactRequests((data) => {
+      console.log('📥 Processing pending contact request from:', data.fromUsername);
+      this.handleIncomingContactRequest(data);
+    });
+
+    // Also check for pending responses
+    this.p2p.checkPendingContactRequestResponses((data) => {
+      console.log('📥 Processing pending contact response');
+      this.handleContactRequestResponse(data);
+    });
+
+    // THEN: Subscribe to new incoming contact requests
     this.p2p.subscribeToContactRequests((data) => {
+      console.log('📬 Processing new contact request from:', data.fromUsername);
       this.handleIncomingContactRequest(data);
     });
 
     // Subscribe to contact request responses
     this.p2p.subscribeToContactRequestResponses((data) => {
+      console.log('📬 Processing new contact response');
       this.handleContactRequestResponse(data);
     });
 
-    console.log('Subscribed to contact requests and responses');
+    console.log('✅ Subscribed to contact requests and responses');
   }
 
   /**

@@ -182,6 +182,38 @@ class P2PNetwork extends EventEmitter {
   }
 
   /**
+   * Check for existing pending DMs from a contact
+   * @param {string} publicKey - Contact's public key
+   * @param {Function} callback - Callback for found messages
+   */
+  checkPendingDMs(publicKey, callback) {
+    if (!this.gun) return;
+
+    const conversationKey = `dm_${this.identity.publicKey}_${publicKey}`;
+    const foundMessages = new Set();
+
+    console.log('🔍 Checking for pending DMs in conversation:', conversationKey);
+
+    this.gun
+      .get(conversationKey)
+      .map()
+      .once((data, messageId) => {
+        if (data && typeof data === 'object' && data.envelope) {
+          const envId = data.envelope.id;
+          if (envId && !foundMessages.has(envId)) {
+            foundMessages.add(envId);
+            console.log('📥 Found pending DM:', envId);
+            callback(data);
+          }
+        }
+      });
+
+    setTimeout(() => {
+      console.log(`✅ Pending DM check complete for ${publicKey.substring(0, 10)}... Found: ${foundMessages.size} messages`);
+    }, 2000);
+  }
+
+  /**
    * Subscribe to a contact's messages and presence
    * @param {string} publicKey - Contact's public key
    * @param {Function} callback - Callback for new messages
@@ -191,7 +223,7 @@ class P2PNetwork extends EventEmitter {
 
     // Avoid duplicate subscriptions
     if (this.contactSubscriptions.has(publicKey)) {
-      console.log('Already subscribed to:', publicKey);
+      console.log('⚠️ Already subscribed to:', publicKey.substring(0, 10) + '...');
       return;
     }
 
@@ -202,9 +234,21 @@ class P2PNetwork extends EventEmitter {
     // Format: dm_RECIPIENT_SENDER (matches sending format)
     const conversationKey = `dm_${this.identity.publicKey}_${publicKey}`;
 
-    console.log('Subscribing to conversation:', conversationKey);
+    console.log('📡 Subscribing to DM conversation:', conversationKey);
 
-    // Subscribe to messages with 2-level structure (WORKS with relay!)
+    // FIRST: Check for pending messages
+    this.checkPendingDMs(publicKey, (data) => {
+      if (data && data.envelope) {
+        const envId = data.envelope.id;
+        if (envId && !processedMessages.has(envId)) {
+          processedMessages.add(envId);
+          console.log('📥 Processing pending DM from:', publicKey.substring(0, 10) + '...');
+          callback(data);
+        }
+      }
+    });
+
+    // THEN: Subscribe to new messages
     const messageListener = this.gun
       .get(conversationKey)  // Level 1: Conversation
       .map()                 // Level 2: Iterate messages
@@ -222,7 +266,7 @@ class P2PNetwork extends EventEmitter {
             this.trafficStats.bytesIn += dataSize;
             this.trafficStats.messagesIn++;
 
-            console.log('Message received from:', publicKey, 'msgId:', messageId, `(${dataSize} bytes)`);
+            console.log('📬 New DM received from:', publicKey.substring(0, 10) + '...', 'msgId:', messageId, `(${dataSize} bytes)`);
             callback(data);
           }
         }
@@ -245,7 +289,8 @@ class P2PNetwork extends EventEmitter {
       });
 
     this.contactSubscriptions.set(publicKey, { messageListener, processedMessages });
-    console.log('Subscribed to contact:', publicKey);
+    console.log('✅ Successfully subscribed to contact:', publicKey.substring(0, 10) + '...');
+    console.log('   📊 Total subscribed contacts:', this.contactSubscriptions.size);
   }
 
   /**
@@ -292,16 +337,18 @@ class P2PNetwork extends EventEmitter {
       // Format: dm_RECIPIENT_SENDER
       const conversationKey = `dm_${recipientKey}_${this.identity.publicKey}`;
 
+      console.log('📤 Sending DM to:', recipientKey.substring(0, 10) + '...', 'via', conversationKey);
+
       // Store message with 2-level structure (WORKS with relay!) - Wait for Gun acknowledgment
       this.gun
         .get(conversationKey)  // Level 1: Conversation
         .get(messageId)        // Level 2: Message ID
         .put(messageData, (ack) => {  // Store data with acknowledgment
           if (ack.err) {
-            console.error('Message send failed:', ack.err);
+            console.error('❌ DM send FAILED to:', recipientKey.substring(0, 10) + '...', 'Error:', ack.err);
             reject(new Error(`Gun.js error: ${ack.err}`));
           } else {
-            console.log('✅ Message confirmed:', recipientKey, 'key:', conversationKey, `(${dataSize} bytes)`);
+            console.log('✅ DM confirmed:', recipientKey.substring(0, 10) + '...', `(${dataSize} bytes)`);
             resolve({ conversationKey, messageId, dataSize });
           }
         });
@@ -401,6 +448,40 @@ class P2PNetwork extends EventEmitter {
   }
 
   /**
+   * Check for existing pending contact requests on the network
+   * This is called on startup to fetch any requests that were sent while offline
+   * @param {Function} callback - Callback for found contact requests
+   */
+  checkPendingContactRequests(callback) {
+    if (!this.gun) return;
+
+    const requestKey = `creq_${this.identity.publicKey}`;
+    const foundRequests = new Set();
+
+    console.log('🔍 Checking for pending contact requests on network:', requestKey);
+
+    // Use .once() to get current state without subscribing to updates
+    this.gun
+      .get(requestKey)
+      .map()
+      .once((data, requestId) => {
+        if (data && typeof data === 'object' && data.type === 'contact_request') {
+          const reqId = data.id;
+          if (reqId && !foundRequests.has(reqId)) {
+            foundRequests.add(reqId);
+            console.log('📥 Found pending contact request:', reqId, 'from:', data.fromUsername);
+            callback(data);
+          }
+        }
+      });
+
+    // Give it a moment to fetch existing requests
+    setTimeout(() => {
+      console.log(`✅ Pending contact request check complete. Found: ${foundRequests.size} requests`);
+    }, 2000);
+  }
+
+  /**
    * Subscribe to incoming contact requests
    * @param {Function} callback - Callback for new contact requests
    */
@@ -412,7 +493,7 @@ class P2PNetwork extends EventEmitter {
     // Subscribe to all contact requests for this user (flat 2-level structure)
     const requestKey = `creq_${this.identity.publicKey}`;
 
-    console.log('Subscribing to contact requests:', requestKey);
+    console.log('📡 Subscribing to contact requests:', requestKey);
 
     this.gun
       .get(requestKey)  // Level 1: My contact requests
@@ -429,13 +510,13 @@ class P2PNetwork extends EventEmitter {
             this.trafficStats.bytesIn += dataSize;
             this.trafficStats.messagesIn++;
 
-            console.log('Contact request received:', requestId, 'from:', data.fromPublicKey, `(${dataSize} bytes)`);
+            console.log('📬 New contact request received:', requestId, 'from:', data.fromUsername, `(${dataSize} bytes)`);
             callback(data);
           }
         }
       });
 
-    console.log('Subscribed to contact requests');
+    console.log('✅ Subscribed to contact requests');
   }
 
   /**
@@ -486,6 +567,37 @@ class P2PNetwork extends EventEmitter {
   }
 
   /**
+   * Check for existing pending contact request responses on the network
+   * @param {Function} callback - Callback for found responses
+   */
+  checkPendingContactRequestResponses(callback) {
+    if (!this.gun) return;
+
+    const responseKey = `cres_${this.identity.publicKey}`;
+    const foundResponses = new Set();
+
+    console.log('🔍 Checking for pending contact request responses:', responseKey);
+
+    this.gun
+      .get(responseKey)
+      .map()
+      .once((data, responseId) => {
+        if (data && typeof data === 'object' && data.type === 'contact_request_response') {
+          const resId = data.id;
+          if (resId && !foundResponses.has(resId)) {
+            foundResponses.add(resId);
+            console.log('📥 Found pending response:', data.status, 'for request:', data.requestId);
+            callback(data);
+          }
+        }
+      });
+
+    setTimeout(() => {
+      console.log(`✅ Pending response check complete. Found: ${foundResponses.size} responses`);
+    }, 2000);
+  }
+
+  /**
    * Subscribe to contact request responses
    * @param {Function} callback - Callback for new responses
    */
@@ -497,7 +609,7 @@ class P2PNetwork extends EventEmitter {
     // Subscribe to all contact request responses for this user (flat 2-level structure)
     const responseKey = `cres_${this.identity.publicKey}`;
 
-    console.log('Subscribing to contact request responses:', responseKey);
+    console.log('📡 Subscribing to contact request responses:', responseKey);
 
     this.gun
       .get(responseKey)  // Level 1: My responses
