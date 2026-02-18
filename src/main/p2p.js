@@ -47,13 +47,15 @@ class P2PNetwork extends EventEmitter {
     // Merge user config with defaults
     this.config = { ...this.config, ...userConfig };
 
-    // Get userData directory for Gun.js storage
+    // Get userData directory for Gun.js storage (always writable, even from DMG)
     const userDataPath = app.getPath('userData');
     const gunDataPath = path.join(userDataPath, 'gundb');
+    const gunFilePath = path.join(gunDataPath, 'radata');
 
     // Ensure directory exists
     if (!fs.existsSync(gunDataPath)) {
       fs.mkdirSync(gunDataPath, { recursive: true });
+      console.log('✅ Created Gun.js data directory:', gunDataPath);
     }
 
     console.log('=== P2P Network Configuration ===');
@@ -61,7 +63,7 @@ class P2PNetwork extends EventEmitter {
     console.log('Act as relay:', this.config.actAsRelay);
     console.log('Multicast enabled:', this.config.enableMulticast);
     console.log('Max relay storage:', this.config.maxRelayStorage, 'MB');
-    console.log('Gun.js storage path:', gunDataPath);
+    console.log('Gun.js storage path:', gunFilePath);
 
     // Bootstrap relay strategy for automatic peer discovery:
     // 1. Public bootstrap relays (for internet discovery)
@@ -79,10 +81,11 @@ class P2PNetwork extends EventEmitter {
       // Connect to bootstrap relays for peer discovery
       peers: bootstrapRelays,
 
-      // Pure client mode - no local persistence
+      // Use writable userData directory for local storage
+      // This prevents EROFS errors when running from DMG
       localStorage: false,  // Don't store & forward
-      radisk: false,        // Don't persist relay data
-      file: false,          // CRITICAL: Explicitly disable file storage to prevent EROFS errors
+      radisk: true,         // Enable local storage for Gun.js to work properly
+      file: gunFilePath,    // Use app's userData directory (always writable)
 
       // DISABLE AXE for now - it might be causing disconnections
       axe: false,
