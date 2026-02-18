@@ -1,0 +1,82 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <!-- Glow filters -->
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="4" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    
+    <filter id="strongGlow">
+      <feGaussianBlur stdDeviation="10" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    
+    <!-- Grid pattern -->
+    <pattern id="grid" width="16" height="16" patternUnits="userSpaceOnUse">
+      <path d="M 16 0 L 0 0 0 16" fill="none" stroke="rgba(0,255,65,0.05)" stroke-width="0.5"/>
+    </pattern>
+    
+    <!-- Scanlines -->
+    <pattern id="scanlines" width="512" height="4" patternUnits="userSpaceOnUse">
+      <rect width="512" height="2" fill="rgba(0,255,65,0.02)"/>
+    </pattern>
+  </defs>
+  
+  <!-- Background with gradient -->
+  <rect width="512" height="512" fill="#000000"/>
+  <rect width="512" height="512" fill="url(#grid)"/>
+  <rect width="512" height="512" fill="url(#scanlines)"/>
+  
+  <!-- Outer glow border -->
+  <rect x="20" y="20" width="472" height="472" rx="40" fill="none" 
+        stroke="#00ff41" stroke-width="4" opacity="0.3" filter="url(#strongGlow)"/>
+  
+  <!-- Main border -->
+  <rect x="40" y="40" width="432" height="432" rx="30" fill="rgba(0,255,65,0.03)" 
+        stroke="#00ff41" stroke-width="3" filter="url(#glow)"/>
+  
+  <!-- Terminal window inside -->
+  <rect x="70" y="120" width="372" height="272" fill="rgba(0,0,0,0.8)" 
+        stroke="#00ff41" stroke-width="2"/>
+  
+  <!-- Terminal header -->
+  <rect x="70" y="120" width="372" height="30" fill="rgba(0,255,65,0.1)"/>
+  <circle cx="88" cy="135" r="5" fill="#00ff41" filter="url(#glow)"/>
+  <circle cx="108" cy="135" r="5" fill="#00ff41" filter="url(#glow)"/>
+  <circle cx="128" cy="135" r="5" fill="#00ff41" filter="url(#glow)"/>
+  
+  <!-- Main AST text -->
+  <text x="256" y="280" font-family="monospace" font-size="120" font-weight="bold" 
+        fill="#00ff41" text-anchor="middle" filter="url(#strongGlow)">AST</text>
+  
+  <!-- Brackets -->
+  <text x="110" y="280" font-family="monospace" font-size="100" font-weight="bold" 
+        fill="#00ffff" text-anchor="middle" filter="url(#glow)">[</text>
+  <text x="402" y="280" font-family="monospace" font-size="100" font-weight="bold" 
+        fill="#00ffff" text-anchor="middle" filter="url(#glow)">]</text>
+  
+  <!-- Subtitle -->
+  <text x="256" y="340" font-family="monospace" font-size="20" 
+        fill="#00ff41" text-anchor="middle" opacity="0.7">AiSeekTruth</text>
+  
+  <!-- Command prompt at bottom -->
+  <text x="85" y="375" font-family="monospace" font-size="14" 
+        fill="#00ffff" opacity="0.5">root@truth:~$</text>
+  
+  <!-- Blinking cursor -->
+  <rect x="185" y="364" width="10" height="16" fill="#00ff41" opacity="0.8">
+    <animate attributeName="opacity" values="1;0;1" dur="1s" repeatCount="indefinite"/>
+  </rect>
+  
+  <!-- Corner accents -->
+  <path d="M 60 60 L 60 80 M 60 60 L 80 60" stroke="#00ffff" stroke-width="2" opacity="0.6"/>
+  <path d="M 452 60 L 452 80 M 452 60 L 432 60" stroke="#00ffff" stroke-width="2" opacity="0.6"/>
+  <path d="M 60 452 L 60 432 M 60 452 L 80 452" stroke="#00ffff" stroke-width="2" opacity="0.6"/>
+  <path d="M 452 452 L 452 432 M 452 452 L 432 452" stroke="#00ffff" stroke-width="2" opacity="0.6"/>
+</svg>

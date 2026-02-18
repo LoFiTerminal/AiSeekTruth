@@ -1,0 +1,1277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AiSeekTruth - Open Source P2P Encrypted Messaging</title>
+  <meta name="description" content="100% open source, fully decentralized P2P messaging with Signal Protocol encryption. Every app acts as both client and relay. No central servers. GPL-3.0 licensed.">
+  <meta name="keywords" content="decentralized messaging, p2p chat, encrypted messaging, open source, signal protocol, gun.js, e2e encryption">
+  <meta property="og:title" content="AiSeekTruth - Open Source P2P Encrypted Messaging">
+  <meta property="og:description" content="100% open source, fully decentralized P2P messaging. Every app = Client + Relay. No central servers.">
+  <meta property="og:type" content="website">
+  <link rel="icon" type="image/svg+xml" href="ast-favicon.svg">
+  <link rel="apple-touch-icon" href="ast-icon-256.svg">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --bg-primary: #0a0e1a;
+      --bg-secondary: #151a2d;
+      --bg-tertiary: #1e2538;
+      --border: #2a3244;
+      --text-primary: #e4e8f0;
+      --text-secondary: #8892a6;
+      --accent: #00ff41;
+      --terminal-green: #00ff41;
+      --accent-dim: #00aa2b;
+      --success: #00ff41;
+      --warning: #f59e0b;
+      --code-bg: #0d1117;
+      --cyan: #00ffff;
+    }
+
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      line-height: 1.6;
+    }
+
+    /* Header */
+    header {
+      background: var(--bg-secondary);
+      border-bottom: 1px solid var(--border);
+      padding: 1rem 2rem;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    nav {
+      max-width: 1400px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .logo {
+      font-size: 1.2rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .logo-icon {
+      width: 32px;
+      height: 32px;
+      background: var(--bg-tertiary);
+      border: 2px solid var(--accent);
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+
+    .logo-icon svg {
+      width: 20px;
+      height: 20px;
+    }
+
+    .logo-shield {
+      fill: none;
+      stroke: var(--accent);
+      stroke-width: 2;
+    }
+
+    .logo-lock {
+      fill: var(--success);
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 2rem;
+      list-style: none;
+    }
+
+    .nav-links a {
+      color: var(--text-secondary);
+      text-decoration: none;
+      font-size: 0.9rem;
+      transition: color 0.2s;
+    }
+
+    .nav-links a:hover {
+      color: var(--text-primary);
+    }
+
+    /* Hero */
+    .hero {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 4rem 2rem 2rem;
+    }
+
+    .hero-header {
+      margin-bottom: 3rem;
+    }
+
+    .hero-header h1 {
+      font-size: 2.5rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+      color: var(--text-primary);
+    }
+
+    .hero-header p {
+      font-size: 1.1rem;
+      color: var(--text-secondary);
+      max-width: 800px;
+    }
+
+    .tech-badges {
+      display: flex;
+      gap: 1rem;
+      margin-top: 1.5rem;
+      flex-wrap: wrap;
+    }
+
+    .badge {
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border);
+      padding: 0.5rem 1rem;
+      border-radius: 4px;
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      font-family: 'Courier New', monospace;
+    }
+
+    /* App Screenshot */
+    .app-container {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+      margin-bottom: 4rem;
+    }
+
+    .app-titlebar {
+      background: var(--bg-tertiary);
+      padding: 0.75rem 1rem;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .titlebar-dots {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: var(--border);
+    }
+
+    .titlebar-text {
+      margin-left: 1rem;
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      font-family: 'Courier New', monospace;
+    }
+
+    .app-content {
+      display: flex;
+      height: 600px;
+    }
+
+    .app-sidebar {
+      width: 260px;
+      background: var(--bg-primary);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .sidebar-header {
+      padding: 1rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .user-profile {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.75rem;
+      background: var(--bg-tertiary);
+      border-radius: 4px;
+    }
+
+    .user-avatar {
+      width: 36px;
+      height: 36px;
+      background: var(--accent-dim);
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.9rem;
+      font-family: 'Courier New', monospace;
+    }
+
+    .user-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .user-name {
+      font-size: 0.85rem;
+      font-weight: 600;
+      font-family: 'Courier New', monospace;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .user-key {
+      font-size: 0.7rem;
+      color: var(--text-secondary);
+      font-family: 'Courier New', monospace;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .sidebar-section {
+      padding: 1rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .section-title {
+      font-size: 0.7rem;
+      color: var(--text-secondary);
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      margin-bottom: 0.5rem;
+      text-transform: uppercase;
+    }
+
+    .contact-item {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.5rem;
+      border-radius: 4px;
+      margin-bottom: 0.25rem;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .contact-item:hover {
+      background: var(--bg-tertiary);
+    }
+
+    .contact-item.active {
+      background: var(--accent-dim);
+    }
+
+    .contact-avatar {
+      width: 32px;
+      height: 32px;
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.85rem;
+    }
+
+    .group-avatar {
+      background: var(--accent-dim);
+    }
+
+    .contact-name {
+      font-size: 0.85rem;
+      font-weight: 500;
+    }
+
+    .contact-status {
+      margin-left: auto;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--success);
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% {
+        opacity: 1;
+        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+      }
+      50% {
+        opacity: 0.8;
+        box-shadow: 0 0 0 4px rgba(16, 185, 129, 0);
+      }
+    }
+
+    /* Chat Area */
+    .chat-area {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      background: var(--bg-secondary);
+    }
+
+    .chat-header {
+      padding: 1rem 1.5rem;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .chat-title {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .chat-title h3 {
+      font-size: 1rem;
+      font-weight: 600;
+    }
+
+    .encryption-status {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.75rem;
+      color: var(--success);
+      background: rgba(16, 185, 129, 0.1);
+      padding: 0.25rem 0.75rem;
+      border-radius: 4px;
+      font-family: 'Courier New', monospace;
+    }
+
+    .messages {
+      flex: 1;
+      padding: 1.5rem;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .message {
+      display: flex;
+      gap: 0.75rem;
+      max-width: 70%;
+      opacity: 0;
+      transform: translateY(10px);
+      animation: messageAppear 0.3s ease forwards;
+    }
+
+    @keyframes messageAppear {
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .message.sent {
+      margin-left: auto;
+      flex-direction: row-reverse;
+    }
+
+    .message-avatar {
+      width: 32px;
+      height: 32px;
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.85rem;
+      flex-shrink: 0;
+    }
+
+    .message-content {
+      flex: 1;
+    }
+
+    .message-sender {
+      font-size: 0.75rem;
+      color: var(--accent);
+      margin-bottom: 0.25rem;
+      font-weight: 600;
+    }
+
+    .message-bubble {
+      background: var(--bg-tertiary);
+      padding: 0.75rem 1rem;
+      border-radius: 4px;
+      border: 1px solid var(--border);
+      font-size: 0.9rem;
+      line-height: 1.5;
+    }
+
+    .message.sent .message-bubble {
+      background: var(--accent-dim);
+      border-color: var(--accent);
+    }
+
+    .message-time {
+      font-size: 0.7rem;
+      color: var(--text-secondary);
+      margin-top: 0.25rem;
+      font-family: 'Courier New', monospace;
+    }
+
+    /* Typing Indicator */
+    .typing-indicator {
+      display: flex;
+      gap: 0.75rem;
+      max-width: 70%;
+      opacity: 0;
+    }
+
+    .typing-indicator.show {
+      animation: messageAppear 0.3s ease forwards;
+    }
+
+    .typing-bubble {
+      background: var(--bg-tertiary);
+      padding: 0.75rem 1rem;
+      border-radius: 4px;
+      border: 1px solid var(--border);
+      display: flex;
+      gap: 0.35rem;
+    }
+
+    .typing-dot {
+      width: 6px;
+      height: 6px;
+      background: var(--text-secondary);
+      border-radius: 50%;
+      animation: typingDot 1.4s ease-in-out infinite;
+    }
+
+    .typing-dot:nth-child(2) {
+      animation-delay: 0.2s;
+    }
+
+    .typing-dot:nth-child(3) {
+      animation-delay: 0.4s;
+    }
+
+    @keyframes typingDot {
+      0%, 60%, 100% {
+        transform: translateY(0);
+        opacity: 0.5;
+      }
+      30% {
+        transform: translateY(-8px);
+        opacity: 1;
+      }
+    }
+
+    .message-input {
+      padding: 1rem 1.5rem;
+      border-top: 1px solid var(--border);
+      display: flex;
+      gap: 0.75rem;
+    }
+
+    .message-input input {
+      flex: 1;
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 0.75rem 1rem;
+      color: var(--text-primary);
+      font-size: 0.9rem;
+      font-family: inherit;
+    }
+
+    .message-input button {
+      background: var(--accent);
+      color: white;
+      border: none;
+      padding: 0.75rem 1.5rem;
+      border-radius: 4px;
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 0.9rem;
+      transition: background 0.2s;
+    }
+
+    .message-input button:hover {
+      background: var(--accent-dim);
+    }
+
+    /* Technical Specs */
+    .specs {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 4rem 2rem;
+    }
+
+    .section-header {
+      margin-bottom: 2rem;
+    }
+
+    .section-header h2 {
+      font-size: 1.8rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+    }
+
+    .section-header p {
+      color: var(--text-secondary);
+      font-size: 1rem;
+    }
+
+    .specs-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 3rem;
+    }
+
+    .spec-card {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 1.5rem;
+      transition: border-color 0.2s, transform 0.2s;
+    }
+
+    .spec-card:hover {
+      border-color: var(--accent);
+      transform: translateY(-2px);
+    }
+
+    .spec-card h3 {
+      font-size: 1rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .spec-card ul {
+      list-style: none;
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+      line-height: 1.8;
+    }
+
+    .spec-card li {
+      padding-left: 1.5rem;
+      position: relative;
+    }
+
+    .spec-card li::before {
+      content: '→';
+      position: absolute;
+      left: 0;
+      color: var(--accent);
+    }
+
+    /* Code Block */
+    .code-section {
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 1.5rem;
+      margin: 2rem 0;
+    }
+
+    .code-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+      padding-bottom: 0.75rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .code-title {
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      font-family: 'Courier New', monospace;
+    }
+
+    pre {
+      font-family: 'Courier New', monospace;
+      font-size: 0.85rem;
+      line-height: 1.6;
+      overflow-x: auto;
+      color: var(--text-secondary);
+    }
+
+    .code-keyword {
+      color: #ff79c6;
+    }
+
+    .code-string {
+      color: #f1fa8c;
+    }
+
+    .code-function {
+      color: #50fa7b;
+    }
+
+    .code-comment {
+      color: #6272a4;
+    }
+
+    /* Architecture */
+    .architecture {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 4rem 2rem;
+      background: var(--bg-secondary);
+    }
+
+    .arch-diagram {
+      background: var(--bg-primary);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 2rem;
+      margin-top: 2rem;
+    }
+
+    .arch-layer {
+      margin-bottom: 2rem;
+    }
+
+    .layer-title {
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 1rem;
+      font-weight: 700;
+    }
+
+    .layer-boxes {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+    }
+
+    .layer-box {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      padding: 1rem;
+      border-radius: 4px;
+      text-align: center;
+      transition: border-color 0.2s, transform 0.2s;
+    }
+
+    .layer-box:hover {
+      border-color: var(--accent);
+      transform: translateY(-2px);
+    }
+
+    .layer-box strong {
+      display: block;
+      font-size: 0.9rem;
+      margin-bottom: 0.5rem;
+      color: var(--accent);
+    }
+
+    .layer-box span {
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+      font-family: 'Courier New', monospace;
+    }
+
+    /* Download */
+    .download {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 4rem 2rem;
+    }
+
+    .download-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 1.5rem;
+      margin-top: 2rem;
+    }
+
+    .download-card {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 2rem;
+      text-align: center;
+      transition: border-color 0.2s, transform 0.2s;
+    }
+
+    .download-card:hover {
+      border-color: var(--accent);
+      transform: translateY(-2px);
+    }
+
+    .download-card h3 {
+      font-size: 1.2rem;
+      margin-bottom: 1rem;
+    }
+
+    .download-meta {
+      color: var(--text-secondary);
+      font-size: 0.85rem;
+      margin-bottom: 1.5rem;
+      font-family: 'Courier New', monospace;
+    }
+
+    .download-btn {
+      background: var(--accent);
+      color: white;
+      padding: 0.75rem 2rem;
+      border-radius: 4px;
+      text-decoration: none;
+      display: inline-block;
+      font-weight: 600;
+      transition: background 0.2s, transform 0.2s;
+    }
+
+    .download-btn:hover {
+      background: var(--accent-dim);
+      transform: translateY(-2px);
+    }
+
+    /* Footer */
+    footer {
+      background: var(--bg-secondary);
+      border-top: 1px solid var(--border);
+      padding: 3rem 2rem 2rem;
+      margin-top: 4rem;
+    }
+
+    .footer-content {
+      max-width: 1400px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr 1fr;
+      gap: 3rem;
+      margin-bottom: 2rem;
+    }
+
+    .footer-section h4 {
+      font-size: 0.9rem;
+      margin-bottom: 1rem;
+      color: var(--text-primary);
+    }
+
+    .footer-section p,
+    .footer-section a {
+      color: var(--text-secondary);
+      font-size: 0.85rem;
+      line-height: 1.8;
+      text-decoration: none;
+      display: block;
+      margin-bottom: 0.5rem;
+    }
+
+    .footer-section a:hover {
+      color: var(--text-primary);
+    }
+
+    .footer-bottom {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding-top: 2rem;
+      border-top: 1px solid var(--border);
+      text-align: center;
+      color: var(--text-secondary);
+      font-size: 0.85rem;
+    }
+
+    /* Responsive */
+    @media (max-width: 1024px) {
+      .app-content {
+        height: 500px;
+      }
+
+      .specs-grid,
+      .layer-boxes {
+        grid-template-columns: 1fr;
+      }
+
+      .footer-content {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .nav-links {
+        display: none;
+      }
+
+      .app-sidebar {
+        display: none;
+      }
+
+      .hero-header h1 {
+        font-size: 2rem;
+      }
+
+      .footer-content {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <header>
+    <nav>
+      <div class="logo">
+        <img src="../icons/ast-icon-512.svg" alt="AST" style="width: 32px; height: 32px; margin-right: 0.5rem;" />
+        <span style="font-family: 'Courier New', monospace; color: var(--terminal-green);">[AST]</span>
+        <span style="margin-left: 0.5rem;">AiSeekTruth</span>
+      </div>
+      <ul class="nav-links">
+        <li><a href="#specs">Tech Stack</a></li>
+        <li><a href="#download">Download</a></li>
+        <li><a href="https://github.com/LoFiTerminal/AiSeekTruth" style="color: var(--terminal-green); font-weight: 700; padding: 0.5rem 1rem; background: rgba(0, 255, 65, 0.1); border-radius: 4px; border: 1px solid var(--terminal-green);">⭐ GitHub</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <!-- Hero -->
+  <section class="hero" style="padding-top: 2rem;">
+    <!-- App Interface -->
+    <div class="app-container">
+      <div class="app-titlebar">
+        <div class="titlebar-dots">
+          <div class="dot"></div>
+          <div class="dot"></div>
+          <div class="dot"></div>
+        </div>
+        <span class="titlebar-text">AiSeekTruth v1.0.0</span>
+      </div>
+      <div class="app-content">
+        <!-- Sidebar -->
+        <div class="app-sidebar">
+          <div class="sidebar-header">
+            <div class="user-profile">
+              <div class="user-avatar">U1</div>
+              <div class="user-info">
+                <div class="user-name">user_alpha</div>
+                <div class="user-key">7f3a9b2e...</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="sidebar-section">
+            <div class="section-title">Direct Messages</div>
+            <div class="contact-item active">
+              <div class="contact-avatar">U2</div>
+              <div class="contact-name">user_beta</div>
+              <div class="contact-status"></div>
+            </div>
+            <div class="contact-item">
+              <div class="contact-avatar">U3</div>
+              <div class="contact-name">user_gamma</div>
+            </div>
+            <div class="contact-item">
+              <div class="contact-avatar">U4</div>
+              <div class="contact-name">user_delta</div>
+            </div>
+          </div>
+
+          <div class="sidebar-section">
+            <div class="section-title">Groups</div>
+            <div class="contact-item">
+              <div class="contact-avatar group-avatar">#</div>
+              <div class="contact-name">dev-team</div>
+            </div>
+            <div class="contact-item">
+              <div class="contact-avatar group-avatar">#</div>
+              <div class="contact-name">security-research</div>
+            </div>
+            <div class="contact-item">
+              <div class="contact-avatar group-avatar">#</div>
+              <div class="contact-name">privacy-advocates</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Chat -->
+        <div class="chat-area">
+          <div class="chat-header">
+            <div class="chat-title">
+              <div class="contact-avatar">U2</div>
+              <h3>user_beta</h3>
+            </div>
+            <div class="encryption-status">
+              🔒 E2E Encrypted
+            </div>
+          </div>
+
+          <div class="messages" id="messages">
+            <!-- Messages will be added dynamically -->
+          </div>
+
+          <div class="message-input">
+            <input type="text" placeholder="Type message..." />
+            <button>Send</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Hero Text Below App -->
+    <div style="text-align: center; margin-top: 2rem; padding: 1.5rem; background: rgba(0, 255, 65, 0.05); border: 2px solid var(--terminal-green); border-radius: 8px;">
+      <h1 style="font-size: 1.8rem; margin-bottom: 0.75rem;">Open Source P2P Encrypted Messaging</h1>
+      <p style="font-size: 1rem; color: var(--text-secondary); margin-bottom: 1rem;">
+        Every app = Client + Relay • No central servers • No surveillance
+      </p>
+      <a href="https://github.com/LoFiTerminal/AiSeekTruth" style="display: inline-block; padding: 0.75rem 2rem; background: var(--terminal-green); color: #000; border-radius: 6px; text-decoration: none; font-weight: 700; font-size: 0.95rem; box-shadow: 0 0 20px rgba(0, 255, 65, 0.3);">
+        ⭐ View on GitHub • 100% Open Source
+      </a>
+    </div>
+  </section>
+
+  <!-- Key Features -->
+  <section class="specs" style="padding: 3rem 2rem;">
+    <div style="max-width: 1400px; margin: 0 auto;">
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem;">
+        <div style="text-align: center; padding: 1.5rem;">
+          <div style="font-size: 3rem; margin-bottom: 0.5rem;">🔒</div>
+          <h3 style="color: var(--terminal-green); margin-bottom: 0.5rem; font-family: 'Courier New', monospace;">Signal Protocol</h3>
+          <p style="color: var(--text-secondary); font-size: 0.9rem;">End-to-end encryption</p>
+        </div>
+        <div style="text-align: center; padding: 1.5rem;">
+          <div style="font-size: 3rem; margin-bottom: 0.5rem;">🌐</div>
+          <h3 style="color: var(--terminal-green); margin-bottom: 0.5rem; font-family: 'Courier New', monospace;">P2P Mesh</h3>
+          <p style="color: var(--text-secondary); font-size: 0.9rem;">Every app = relay</p>
+        </div>
+        <div style="text-align: center; padding: 1.5rem;">
+          <div style="font-size: 3rem; margin-bottom: 0.5rem;">📖</div>
+          <h3 style="color: var(--terminal-green); margin-bottom: 0.5rem; font-family: 'Courier New', monospace;">Open Source</h3>
+          <p style="color: var(--text-secondary); font-size: 0.9rem;">GPL-3.0 licensed</p>
+        </div>
+        <div style="text-align: center; padding: 1.5rem;">
+          <div style="font-size: 3rem; margin-bottom: 0.5rem;">🎨</div>
+          <h3 style="color: var(--terminal-green); margin-bottom: 0.5rem; font-family: 'Courier New', monospace;">Retro UI</h3>
+          <p style="color: var(--text-secondary); font-size: 0.9rem;">Terminal aesthetic</p>
+        </div>
+        <div style="text-align: center; padding: 1.5rem;">
+          <div style="font-size: 3rem; margin-bottom: 0.5rem;">💬</div>
+          <h3 style="color: var(--terminal-green); margin-bottom: 0.5rem; font-family: 'Courier New', monospace;">Groups</h3>
+          <p style="color: var(--text-secondary); font-size: 0.9rem;">Encrypted group chats</p>
+        </div>
+        <div style="text-align: center; padding: 1.5rem;">
+          <div style="font-size: 3rem; margin-bottom: 0.5rem;">🚫</div>
+          <h3 style="color: var(--terminal-green); margin-bottom: 0.5rem; font-family: 'Courier New', monospace;">No Servers</h3>
+          <p style="color: var(--text-secondary); font-size: 0.9rem;">Fully decentralized</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Technical Specs -->
+  <section id="specs" class="specs" style="background: var(--bg-secondary);">
+    <div class="section-header">
+      <h2>Tech Stack</h2>
+      <p><a href="https://github.com/LoFiTerminal/AiSeekTruth" style="color: var(--terminal-green); text-decoration: none; font-weight: 600;">Inspect the code on GitHub →</a></p>
+    </div>
+
+    <div class="specs-grid">
+      <div class="spec-card">
+        <h3>🔐 Encryption</h3>
+        <ul>
+          <li>Signal Protocol</li>
+          <li>Ed25519 signing</li>
+          <li>X25519 ECDH</li>
+          <li>XSalsa20-Poly1305</li>
+          <li>Argon2id hashing</li>
+        </ul>
+      </div>
+
+      <div class="spec-card">
+        <h3>🌐 Network</h3>
+        <ul>
+          <li><strong>Hybrid Relay Mode</strong></li>
+          <li>Gun.js P2P mesh</li>
+          <li>WebRTC connections</li>
+          <li>Multicast discovery</li>
+          <li>No central servers</li>
+        </ul>
+      </div>
+
+      <div class="spec-card">
+        <h3>💾 Platform</h3>
+        <ul>
+          <li>Electron 28</li>
+          <li>React 18</li>
+          <li>SQLite storage</li>
+          <li>Win/Mac/Linux</li>
+          <li>~100MB install</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Decentralization Highlight -->
+    <div style="background: var(--bg-secondary); border: 2px solid var(--terminal-green); border-radius: 8px; padding: 2rem; margin: 2rem 0; box-shadow: 0 0 40px rgba(0, 255, 65, 0.2);">
+      <h3 style="font-size: 1.3rem; color: var(--terminal-green); margin-bottom: 1.5rem; font-family: 'Courier New', monospace; text-align: center;">
+        🌐 Every App = Client + Relay
+      </h3>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; text-align: center;">
+        <div>
+          <div style="color: var(--terminal-green); font-weight: 700; margin-bottom: 0.5rem; font-family: 'Courier New', monospace;">Self-Sustaining</div>
+          <div style="color: var(--text-secondary); font-size: 0.85rem;">No servers needed</div>
+        </div>
+        <div>
+          <div style="color: var(--terminal-green); font-weight: 700; margin-bottom: 0.5rem; font-family: 'Courier New', monospace;">Censorship Proof</div>
+          <div style="color: var(--text-secondary); font-size: 0.85rem;">Can't shut it down</div>
+        </div>
+        <div>
+          <div style="color: var(--terminal-green); font-weight: 700; margin-bottom: 0.5rem; font-family: 'Courier New', monospace;">Always Encrypted</div>
+          <div style="color: var(--text-secondary); font-size: 0.85rem;">E2E everywhere</div>
+        </div>
+        <div>
+          <div style="color: var(--terminal-green); font-weight: 700; margin-bottom: 0.5rem; font-family: 'Courier New', monospace;">Local P2P</div>
+          <div style="color: var(--text-secondary); font-size: 0.85rem;">Works offline</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- Download -->
+  <section id="download" class="download">
+    <div class="section-header">
+      <h2>Download v1.0.0</h2>
+      <p style="color: var(--text-secondary);">
+        <a href="https://github.com/LoFiTerminal/AiSeekTruth/releases/tag/v1.0.0" style="color: var(--terminal-green); text-decoration: none; font-weight: 600;">All Releases on GitHub →</a>
+      </p>
+    </div>
+
+    <div class="download-grid">
+      <div class="download-card">
+        <h3>🍎 macOS</h3>
+        <div class="download-meta">
+          Apple Silicon (M1/M2/M3/M4)<br>
+          macOS 11+<br>
+          ~96MB ZIP
+        </div>
+        <a href="https://github.com/LoFiTerminal/AiSeekTruth/releases/download/v1.0.0/AiSeekTruth-1.0.0-arm64-mac.zip" class="download-btn">Download ZIP</a>
+      </div>
+
+      <div class="download-card">
+        <h3>🪟 Windows x64</h3>
+        <div class="download-meta">
+          Intel/AMD 64-bit<br>
+          Windows 10/11<br>
+          ~80MB EXE
+        </div>
+        <a href="https://github.com/LoFiTerminal/AiSeekTruth/releases/download/v1.0.0/AiSeekTruth-Setup-1.0.0-x64.exe" class="download-btn">Download Installer</a>
+        <a href="https://github.com/LoFiTerminal/AiSeekTruth/releases/download/v1.0.0/AiSeekTruth-1.0.0-x64-portable.exe" style="margin-top: 0.75rem; display: inline-block; padding: 0.5rem 1rem; background: var(--bg-tertiary); border: 1px solid var(--terminal-green); color: var(--terminal-green); border-radius: 4px; text-decoration: none; font-size: 0.85rem; font-weight: 600;">Portable</a>
+      </div>
+
+      <div class="download-card">
+        <h3>🪟 Windows ARM64</h3>
+        <div class="download-meta">
+          Snapdragon, Surface Pro X<br>
+          Windows 10/11<br>
+          ~82MB EXE
+        </div>
+        <a href="https://github.com/LoFiTerminal/AiSeekTruth/releases/download/v1.0.0/AiSeekTruth-Setup-1.0.0-arm64.exe" class="download-btn">Download Installer</a>
+        <a href="https://github.com/LoFiTerminal/AiSeekTruth/releases/download/v1.0.0/AiSeekTruth-1.0.0-arm64-portable.exe" style="margin-top: 0.75rem; display: inline-block; padding: 0.5rem 1rem; background: var(--bg-tertiary); border: 1px solid var(--terminal-green); color: var(--terminal-green); border-radius: 4px; text-decoration: none; font-size: 0.85rem; font-weight: 600;">Portable</a>
+      </div>
+
+      <div class="download-card">
+        <h3>🐧 Linux ARM64</h3>
+        <div class="download-meta">
+          Any Distribution<br>
+          ~110MB AppImage<br>
+          ~69MB DEB
+        </div>
+        <a href="https://github.com/LoFiTerminal/AiSeekTruth/releases/download/v1.0.0/AiSeekTruth-1.0.0-arm64.AppImage" class="download-btn">Download AppImage</a>
+        <a href="https://github.com/LoFiTerminal/AiSeekTruth/releases/download/v1.0.0/aiseektruth_1.0.0_arm64.deb" style="margin-top: 0.75rem; display: inline-block; padding: 0.5rem 1rem; background: var(--bg-tertiary); border: 1px solid var(--terminal-green); color: var(--terminal-green); border-radius: 4px; text-decoration: none; font-size: 0.85rem; font-weight: 600;">DEB Package</a>
+      </div>
+    </div>
+
+
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <div class="footer-content">
+      <div class="footer-section">
+        <h4 style="color: var(--terminal-green);">AiSeekTruth</h4>
+        <p style="color: var(--terminal-green); font-family: 'Courier New', monospace; margin-top: 0.5rem;">
+          Every app = Client + Relay
+        </p>
+      </div>
+      <div class="footer-section">
+        <h4>Links</h4>
+        <a href="https://github.com/LoFiTerminal/AiSeekTruth">GitHub</a>
+        <a href="https://github.com/LoFiTerminal/AiSeekTruth#readme">Docs</a>
+        <a href="https://github.com/LoFiTerminal/AiSeekTruth/releases">Releases</a>
+        <a href="https://github.com/LoFiTerminal/AiSeekTruth/issues">Issues</a>
+      </div>
+      <div class="footer-section">
+        <h4>Legal</h4>
+        <a href="https://github.com/LoFiTerminal/AiSeekTruth/blob/main/LICENSE">GPL-3.0</a>
+        <a href="https://github.com/LoFiTerminal/AiSeekTruth/security">Security</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p style="color: var(--terminal-green); font-family: 'Courier New', monospace;">
+        100% Open Source • Fully Decentralized • No Servers
+      </p>
+      <p style="margin-top: 0.5rem; font-size: 0.75rem; color: var(--text-secondary);">
+        © 2026 AiSeekTruth • Electron 28 • React 18 • Gun.js • Signal Protocol
+      </p>
+    </div>
+  </footer>
+
+  <script>
+    // Live chat animation
+    const messagesContainer = document.getElementById('messages');
+
+    const messageData = [
+      {
+        from: 'U2',
+        sender: 'user_beta',
+        text: '🔒 End-to-end encryption with Signal Protocol',
+        time: 'just now',
+        delay: 1000
+      },
+      {
+        from: 'U1',
+        sender: null,
+        text: '🌐 Every app acts as both client and relay',
+        time: '2s ago',
+        delay: 2500
+      },
+      {
+        from: 'U2',
+        sender: 'user_beta',
+        text: '📖 100% open source - audit the code yourself',
+        time: '5s ago',
+        delay: 3000
+      },
+      {
+        from: 'U1',
+        sender: null,
+        text: '💬 Group chats with ICQ-style away messages',
+        time: '8s ago',
+        delay: 3000
+      },
+      {
+        from: 'U2',
+        sender: 'user_beta',
+        text: '🎨 Retro terminal UI with modern UX polish',
+        time: '11s ago',
+        delay: 3000
+      },
+      {
+        from: 'U1',
+        sender: null,
+        text: '🔊 Sound notifications and desktop alerts',
+        time: '14s ago',
+        delay: 3000
+      },
+      {
+        from: 'U2',
+        sender: 'user_beta',
+        text: '🚫 No central servers. No tracking. No backdoors.',
+        time: '17s ago',
+        delay: 3500
+      }
+    ];
+
+    function createTypingIndicator() {
+      const indicator = document.createElement('div');
+      indicator.className = 'typing-indicator';
+      indicator.innerHTML = `
+        <div class="message-avatar">U2</div>
+        <div class="message-content">
+          <div class="message-sender">user_beta</div>
+          <div class="typing-bubble">
+            <div class="typing-dot"></div>
+            <div class="typing-dot"></div>
+            <div class="typing-dot"></div>
+          </div>
+        </div>
+      `;
+      return indicator;
+    }
+
+    function createMessage(data) {
+      const message = document.createElement('div');
+      message.className = `message ${data.from === 'U1' ? 'sent' : ''}`;
+
+      const senderHtml = data.sender ? `<div class="message-sender">${data.sender}</div>` : '';
+
+      message.innerHTML = `
+        <div class="message-avatar">${data.from}</div>
+        <div class="message-content">
+          ${senderHtml}
+          <div class="message-bubble">${data.text}</div>
+          <div class="message-time">${data.time}</div>
+        </div>
+      `;
+
+      return message;
+    }
+
+    async function animateMessages() {
+      for (let i = 0; i < messageData.length; i++) {
+        await new Promise(resolve => setTimeout(resolve, messageData[i].delay));
+
+        // Show typing indicator for received messages
+        if (messageData[i].from !== 'U1') {
+          const typing = createTypingIndicator();
+          messagesContainer.appendChild(typing);
+          typing.classList.add('show');
+
+          await new Promise(resolve => setTimeout(resolve, 1500));
+          messagesContainer.removeChild(typing);
+        }
+
+        // Add message
+        const message = createMessage(messageData[i]);
+        messagesContainer.appendChild(message);
+
+        // Scroll to bottom
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+      }
+
+      // Loop animation after completion
+      setTimeout(() => {
+        messagesContainer.innerHTML = '';
+        animateMessages();
+      }, 5000);
+    }
+
+    // Start animation when page loads
+    window.addEventListener('load', () => {
+      setTimeout(animateMessages, 1000);
+    });
+  </script>
+</body>
+</html>

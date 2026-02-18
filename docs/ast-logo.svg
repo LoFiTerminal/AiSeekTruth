@@ -1,0 +1,68 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="400" height="400">
+  <defs>
+    <!-- Glow filter -->
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="4" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    
+    <!-- Stronger glow -->
+    <filter id="strongGlow">
+      <feGaussianBlur stdDeviation="8" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="400" height="400" fill="#000000"/>
+  
+  <!-- Grid pattern (subtle) -->
+  <defs>
+    <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
+      <path d="M 20 0 L 0 0 0 20" fill="none" stroke="rgba(0,255,65,0.1)" stroke-width="0.5"/>
+    </pattern>
+  </defs>
+  <rect width="400" height="400" fill="url(#grid)"/>
+  
+  <!-- Terminal window frame -->
+  <rect x="30" y="80" width="340" height="240" fill="none" stroke="#00ff41" stroke-width="2" filter="url(#glow)"/>
+  
+  <!-- Terminal header dots -->
+  <circle cx="45" cy="95" r="4" fill="#00ff41" filter="url(#glow)"/>
+  <circle cx="60" cy="95" r="4" fill="#00ff41" filter="url(#glow)"/>
+  <circle cx="75" cy="95" r="4" fill="#00ff41" filter="url(#glow)"/>
+  
+  <!-- Main AST text -->
+  <text x="200" y="200" font-family="monospace" font-size="100" font-weight="bold" 
+        fill="#00ff41" text-anchor="middle" filter="url(#strongGlow)">AST</text>
+  
+  <!-- Brackets around AST -->
+  <text x="85" y="200" font-family="monospace" font-size="100" font-weight="bold" 
+        fill="#00ffff" text-anchor="middle" filter="url(#glow)">[</text>
+  <text x="315" y="200" font-family="monospace" font-size="100" font-weight="bold" 
+        fill="#00ffff" text-anchor="middle" filter="url(#glow)">]</text>
+  
+  <!-- Subtitle -->
+  <text x="200" y="260" font-family="monospace" font-size="18" 
+        fill="#00ff41" text-anchor="middle" opacity="0.8">AiSeekTruth</text>
+  
+  <!-- Command prompt -->
+  <text x="45" y="295" font-family="monospace" font-size="12" 
+        fill="#00ffff" opacity="0.6">root@truth:~$</text>
+  
+  <!-- Blinking cursor -->
+  <rect x="130" y="284" width="8" height="14" fill="#00ff41">
+    <animate attributeName="opacity" values="1;0;1" dur="1s" repeatCount="indefinite"/>
+  </rect>
+  
+  <!-- Scanline effect -->
+  <rect width="400" height="2" fill="#00ff41" opacity="0.1">
+    <animate attributeName="y" from="-2" to="400" dur="3s" repeatCount="indefinite"/>
+  </rect>
+</svg>

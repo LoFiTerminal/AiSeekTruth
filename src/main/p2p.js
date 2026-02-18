@@ -1,0 +1,728 @@
+const Gun = require('gun');
+const EventEmitter = require('events');
+const path = require('path');
+const { app } = require('electron');
+const fs = require('fs');
+
+class P2PNetwork extends EventEmitter {
+  constructor() {
+    super();
+    this.gun = null;
+    this.identity = null;
+    this.contactSubscriptions = new Map();
+    this.heartbeatInterval = null;
+    this.isInitialized = false;
+    this.trafficStats = {
+      bytesIn: 0,
+      bytesOut: 0,
+      messagesIn: 0,
+      messagesOut: 0,
+      lastUpdate: Date.now()
+    };
+    this.trafficInterval = null;
+    this.config = {
+      actAsRelay: true,      // Default: help strengthen network
+      enableMulticast: true,  // Default: discover local peers
+      maxRelayStorage: 100,   // Max 100MB for relay data
+      customRelays: []        // User can add their own relays
+    };
+  }
+
+  /**
+   * Initialize Gun.js with hybrid P2P/relay mode
+   * @param {Object} identity - User's identity
+   * @param {Object} userConfig - Optional configuration
+   */
+  initialize(identity, userConfig = {}) {
+    if (this.isInitialized) {
+      console.log('P2P network already initialized');
+      return;
+    }
+
+    this.identity = identity;
+
+    // Merge user config with defaults
+    this.config = { ...this.config, ...userConfig };
+
+    // Get userData directory for Gun.js storage
+    const userDataPath = app.getPath('userData');
+    const gunDataPath = path.join(userDataPath, 'gundb');
+
+    // Ensure directory exists
+    if (!fs.existsSync(gunDataPath)) {
+      fs.mkdirSync(gunDataPath, { recursive: true });
+    }
+
+    console.log('=== P2P Network Configuration ===');
+    console.log('Mode: Pure P2P with DHT (AXE)');
+    console.log('Act as relay:', this.config.actAsRelay);
+    console.log('Multicast enabled:', this.config.enableMulticast);
+    console.log('Max relay storage:', this.config.maxRelayStorage, 'MB');
+    console.log('Gun.js storage path:', gunDataPath);
+
+    // Bootstrap relay strategy for automatic peer discovery:
+    // 1. Public bootstrap relays (for internet discovery)
+    // 2. Local multicast (for same-network discovery)
+    // 3. User's custom relays (optional)
+    const bootstrapRelays = [
+      'https://aiseektruth-relay-production.up.railway.app/gun',
+      'http://localhost:8765/gun', // Local development fallback
+      ...this.config.customRelays
+    ];
+
+    console.log('Bootstrap relays configured:', bootstrapRelays.length);
+
+    const gunConfig = {
+      // Connect to bootstrap relays for peer discovery
+      peers: bootstrapRelays,
+
+      // ENABLE AXE - Automatic DHT peer discovery
+      axe: true,
+
+      // ENABLE RELAY MODE - Help strengthen the network
+      localStorage: this.config.actAsRelay,  // Store & forward messages
+      radisk: this.config.actAsRelay,        // Persist relay data
+
+      // Set the storage path
+      file: this.config.actAsRelay ? path.join(gunDataPath, 'radata') : undefined,
+
+      // Multicast for local peer discovery (essential for P2P)
+      multicast: this.config.enableMulticast ? {
+        address: '233.255.255.255',
+        port: 8765
+      } : false,
+
+      // Don't store too much relay data
+      until: this.config.maxRelayStorage * 1024 * 1024, // Convert MB to bytes
+
+      // WebRTC configuration for direct peer connections
+      WebRTC: {
+        enabled: true,
+        iceServers: [
+          { urls: 'stun:stun.l.google.com:19302' },
+          { urls: 'stun:stun1.l.google.com:19302' }
+        ]
+      }
+    };
+
+    this.gun = Gun(gunConfig);
+
+    this.isInitialized = true;
+
+    // Listen for peer connections
+    this.gun.on('hi', (peer) => {
+      console.log('Connected to peer:', peer.url || 'local peer');
+      this.emit('peer:connected', { peer: peer.url || 'local' });
+    });
+
+    this.gun.on('bye', (peer) => {
+      console.log('Disconnected from peer:', peer.url || 'local peer');
+      this.emit('peer:disconnected', { peer: peer.url || 'local' });
+    });
+
+    // Announce presence
+    this.announceOnline(identity.publicKey, identity.username, 'online');
+
+    // Start heartbeat to maintain presence
+    this.startHeartbeat();
+
+    // Start traffic monitoring
+    this.startTrafficMonitoring();
+
+    // Log relay statistics periodically
+    this.startRelayMonitoring();
+
+    console.log('✅ P2P network initialized (DHT MODE) for:', identity.username);
+    console.log('🌐 Peer discovery: AXE DHT + Multicast');
+    console.log('📡 Your app is a relay node - helping strengthen the network!');
+  }
+
+  /**
+   * Announce user is online
+   * @param {string} publicKey - User's public key
+   * @param {string} username - User's username
+   * @param {string} status - User's status (online/away/busy)
+   */
+  announceOnline(publicKey, username, status = 'online') {
+    if (!this.gun) return;
+
+    const presenceData = {
+      username,
+      status,
+      timestamp: Date.now(),
+    };
+
+    // Store presence data at public key location
+    this.gun.get('presence').get(publicKey).put(presenceData);
+
+    this.emit('status:updated', { publicKey, status });
+  }
+
+  /**
+   * Subscribe to a contact's messages and presence
+   * @param {string} publicKey - Contact's public key
+   * @param {Function} callback - Callback for new messages
+   */
+  subscribeToContact(publicKey, callback) {
+    if (!this.gun) return;
+
+    // Avoid duplicate subscriptions
+    if (this.contactSubscriptions.has(publicKey)) {
+      console.log('Already subscribed to:', publicKey);
+      return;
+    }
+
+    // Track processed messages in this session to prevent duplicate callbacks
+    const processedMessages = new Set();
+
+    // Create conversation key (flat structure for relay sync)
+    // Format: dm_RECIPIENT_SENDER (matches sending format)
+    const conversationKey = `dm_${this.identity.publicKey}_${publicKey}`;
+
+    console.log('Subscribing to conversation:', conversationKey);
+
+    // Subscribe to messages with 2-level structure (WORKS with relay!)
+    const messageListener = this.gun
+      .get(conversationKey)  // Level 1: Conversation
+      .map()                 // Level 2: Iterate messages
+      .on((data, messageId) => {
+        if (data && typeof data === 'object' && data.envelope) {
+          const envId = data.envelope.id;
+
+          // Prevent duplicate callbacks in this session
+          // (Database check in messaging.js handles cross-session duplicates)
+          if (envId && !processedMessages.has(envId)) {
+            processedMessages.add(envId);
+
+            // Track incoming traffic
+            const dataSize = JSON.stringify(data).length;
+            this.trafficStats.bytesIn += dataSize;
+            this.trafficStats.messagesIn++;
+
+            console.log('Message received from:', publicKey, 'msgId:', messageId, `(${dataSize} bytes)`);
+            callback(data);
+          }
+        }
+      });
+
+    // Subscribe to contact's presence
+    this.gun
+      .get('presence')
+      .get(publicKey)
+      .on((data) => {
+        if (data && data.status) {
+          console.log('Presence update from:', publicKey, '-> status:', data.status);
+          this.emit('presence:update', {
+            publicKey,
+            username: data.username,
+            status: data.status,
+            timestamp: data.timestamp,
+          });
+        }
+      });
+
+    this.contactSubscriptions.set(publicKey, { messageListener, processedMessages });
+    console.log('Subscribed to contact:', publicKey);
+  }
+
+  /**
+   * Unsubscribe from a contact
+   * @param {string} publicKey - Contact's public key
+   */
+  unsubscribeFromContact(publicKey) {
+    const subscription = this.contactSubscriptions.get(publicKey);
+    if (subscription) {
+      if (subscription.messageListener) {
+        subscription.messageListener.off();
+      }
+      this.contactSubscriptions.delete(publicKey);
+      console.log('Unsubscribed from contact:', publicKey);
+    }
+  }
+
+  /**
+   * Send encrypted message envelope to recipient
+   * @param {string} recipientKey - Recipient's public key
+   * @param {Object} envelope - Message envelope with encrypted data
+   */
+  sendMessageEnvelope(recipientKey, envelope) {
+    return new Promise((resolve, reject) => {
+      if (!this.gun) {
+        reject(new Error('P2P network not initialized'));
+        return;
+      }
+
+      const messageData = {
+        envelope,
+        timestamp: Date.now(),
+      };
+
+      // Generate message ID from envelope or create new one
+      const messageId = envelope.id || `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+
+      // Track outgoing traffic
+      const dataSize = JSON.stringify(messageData).length;
+      this.trafficStats.bytesOut += dataSize;
+      this.trafficStats.messagesOut++;
+
+      // Create conversation key (flat structure for relay sync)
+      // Format: dm_RECIPIENT_SENDER
+      const conversationKey = `dm_${recipientKey}_${this.identity.publicKey}`;
+
+      // Store message with 2-level structure (WORKS with relay!) - Wait for Gun acknowledgment
+      this.gun
+        .get(conversationKey)  // Level 1: Conversation
+        .get(messageId)        // Level 2: Message ID
+        .put(messageData, (ack) => {  // Store data with acknowledgment
+          if (ack.err) {
+            console.error('Message send failed:', ack.err);
+            reject(new Error(`Gun.js error: ${ack.err}`));
+          } else {
+            console.log('✅ Message confirmed:', recipientKey, 'key:', conversationKey, `(${dataSize} bytes)`);
+            resolve({ conversationKey, messageId, dataSize });
+          }
+        });
+    });
+  }
+
+  /**
+   * Update user status
+   * @param {string} publicKey - User's public key
+   * @param {string} status - New status (online/away/busy/offline)
+   */
+  updateStatus(publicKey, status) {
+    if (!this.gun) return;
+
+    const presenceData = {
+      username: this.identity.username,
+      status,
+      timestamp: Date.now(),
+    };
+
+    this.gun.get('presence').get(publicKey).put(presenceData);
+
+    this.emit('status:updated', { publicKey, status });
+    console.log('Status updated to:', status);
+  }
+
+  /**
+   * Broadcast karma receipt
+   * @param {Object} receipt - Karma transaction receipt
+   */
+  broadcastKarmaReceipt(receipt) {
+    if (!this.gun) return;
+
+    const karmaData = {
+      from: receipt.from,
+      to: receipt.to,
+      points: receipt.points,
+      reason: receipt.reason,
+      timestamp: Date.now(),
+      signature: receipt.signature,
+    };
+
+    // Store karma receipt
+    this.gun.get('karma').get(receipt.to).set(karmaData);
+
+    console.log('Karma receipt broadcasted:', receipt);
+  }
+
+  /**
+   * Send contact request to another user
+   * @param {string} recipientKey - Recipient's public key
+   * @param {Object} requestData - Contact request data
+   */
+  sendContactRequest(recipientKey, requestData) {
+    return new Promise((resolve, reject) => {
+      if (!this.gun) {
+        reject(new Error('P2P network not initialized'));
+        return;
+      }
+
+      const requestEnvelope = {
+        id: requestData.id,
+        fromPublicKey: requestData.fromPublicKey,
+        fromUsername: requestData.fromUsername,
+        fromEncryptionPublicKey: requestData.fromEncryptionPublicKey,
+        message: requestData.message || null,
+        timestamp: requestData.timestamp,
+        type: 'contact_request'
+      };
+
+      // Generate request ID
+      const requestId = requestData.id || `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+
+      // Track outgoing traffic
+      const dataSize = JSON.stringify(requestEnvelope).length;
+      this.trafficStats.bytesOut += dataSize;
+      this.trafficStats.messagesOut++;
+
+      // Flat key for contact requests (2-level structure for relay sync)
+      // Format: creq_RECIPIENT
+      const requestKey = `creq_${recipientKey}`;
+
+      // Store with 2-level structure (WORKS with relay!) - Wait for Gun acknowledgment
+      this.gun
+        .get(requestKey)
+        .get(requestId)
+        .put(requestEnvelope, (ack) => {
+          if (ack.err) {
+            console.error('Contact request send failed:', ack.err);
+            reject(new Error(`Gun.js error: ${ack.err}`));
+          } else {
+            console.log('✅ Contact request confirmed:', recipientKey, 'key:', requestKey, `(${dataSize} bytes)`);
+            resolve({ requestKey, requestId, dataSize });
+          }
+        });
+    });
+  }
+
+  /**
+   * Subscribe to incoming contact requests
+   * @param {Function} callback - Callback for new contact requests
+   */
+  subscribeToContactRequests(callback) {
+    if (!this.gun) return;
+
+    const processedRequests = new Set();
+
+    // Subscribe to all contact requests for this user (flat 2-level structure)
+    const requestKey = `creq_${this.identity.publicKey}`;
+
+    console.log('Subscribing to contact requests:', requestKey);
+
+    this.gun
+      .get(requestKey)  // Level 1: My contact requests
+      .map()            // Level 2: Iterate request IDs
+      .on((data, requestId) => {
+        if (data && typeof data === 'object' && data.type === 'contact_request') {
+          // Prevent duplicate processing
+          const reqId = data.id;
+          if (reqId && !processedRequests.has(reqId)) {
+            processedRequests.add(reqId);
+
+            // Track incoming traffic
+            const dataSize = JSON.stringify(data).length;
+            this.trafficStats.bytesIn += dataSize;
+            this.trafficStats.messagesIn++;
+
+            console.log('Contact request received:', requestId, 'from:', data.fromPublicKey, `(${dataSize} bytes)`);
+            callback(data);
+          }
+        }
+      });
+
+    console.log('Subscribed to contact requests');
+  }
+
+  /**
+   * Send contact request response (accept/decline)
+   * @param {string} recipientKey - Recipient's public key
+   * @param {Object} responseData - Response data
+   */
+  sendContactRequestResponse(recipientKey, responseData) {
+    return new Promise((resolve, reject) => {
+      if (!this.gun) {
+        reject(new Error('P2P network not initialized'));
+        return;
+      }
+
+      const responseEnvelope = {
+        id: responseData.id,
+        requestId: responseData.requestId,
+        status: responseData.status, // 'accepted' or 'declined'
+        respondedAt: responseData.respondedAt,
+        type: 'contact_request_response'
+      };
+
+      // Generate response ID
+      const responseId = responseData.id || `res_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+
+      // Track outgoing traffic
+      const dataSize = JSON.stringify(responseEnvelope).length;
+      this.trafficStats.bytesOut += dataSize;
+      this.trafficStats.messagesOut++;
+
+      // Flat key for contact request responses (2-level structure for relay sync)
+      const responseKey = `cres_${recipientKey}`;
+
+      // Store with 2-level structure (WORKS with relay!) - Wait for Gun acknowledgment
+      this.gun
+        .get(responseKey)
+        .get(responseId)
+        .put(responseEnvelope, (ack) => {
+          if (ack.err) {
+            console.error('Contact request response send failed:', ack.err);
+            reject(new Error(`Gun.js error: ${ack.err}`));
+          } else {
+            console.log('✅ Contact request response confirmed:', recipientKey, 'status:', responseData.status, `(${dataSize} bytes)`);
+            resolve({ responseKey, responseId, dataSize });
+          }
+        });
+    });
+  }
+
+  /**
+   * Subscribe to contact request responses
+   * @param {Function} callback - Callback for new responses
+   */
+  subscribeToContactRequestResponses(callback) {
+    if (!this.gun) return;
+
+    const processedResponses = new Set();
+
+    // Subscribe to all contact request responses for this user (flat 2-level structure)
+    const responseKey = `cres_${this.identity.publicKey}`;
+
+    console.log('Subscribing to contact request responses:', responseKey);
+
+    this.gun
+      .get(responseKey)  // Level 1: My responses
+      .map()             // Level 2: Iterate response IDs
+      .on((data, responseId) => {
+        if (data && typeof data === 'object' && data.type === 'contact_request_response') {
+          // Prevent duplicate processing
+          const resId = data.id;
+          if (resId && !processedResponses.has(resId)) {
+            processedResponses.add(resId);
+
+            // Track incoming traffic
+            const dataSize = JSON.stringify(data).length;
+            this.trafficStats.bytesIn += dataSize;
+            this.trafficStats.messagesIn++;
+
+            console.log('Contact request response received:', responseId, 'status:', data.status, `(${dataSize} bytes)`);
+            callback(data);
+          }
+        }
+      });
+
+    console.log('Subscribed to contact request responses');
+  }
+
+  /**
+   * Start heartbeat to maintain presence
+   */
+  startHeartbeat() {
+    if (this.heartbeatInterval) {
+      clearInterval(this.heartbeatInterval);
+    }
+
+    // Send heartbeat every 30 seconds
+    this.heartbeatInterval = setInterval(() => {
+      if (this.identity && this.gun) {
+        this.announceOnline(
+          this.identity.publicKey,
+          this.identity.username,
+          'online'
+        );
+      }
+    }, 30000);
+
+    console.log('Heartbeat started');
+  }
+
+  /**
+   * Stop heartbeat
+   */
+  stopHeartbeat() {
+    if (this.heartbeatInterval) {
+      clearInterval(this.heartbeatInterval);
+      this.heartbeatInterval = null;
+      console.log('Heartbeat stopped');
+    }
+  }
+
+  /**
+   * Start traffic monitoring
+   */
+  startTrafficMonitoring() {
+    if (this.trafficInterval) {
+      clearInterval(this.trafficInterval);
+    }
+
+    // Update traffic stats every second
+    this.trafficInterval = setInterval(() => {
+      const now = Date.now();
+      const timeDiff = (now - this.trafficStats.lastUpdate) / 1000; // seconds
+
+      if (timeDiff > 0) {
+        const stats = {
+          inKBps: (this.trafficStats.bytesIn / timeDiff / 1024).toFixed(2),
+          outKBps: (this.trafficStats.bytesOut / timeDiff / 1024).toFixed(2),
+          messagesIn: this.trafficStats.messagesIn,
+          messagesOut: this.trafficStats.messagesOut,
+          totalBytesIn: this.trafficStats.bytesIn,
+          totalBytesOut: this.trafficStats.bytesOut
+        };
+
+        this.emit('traffic:update', stats);
+
+        // Reset counters for next interval
+        this.trafficStats.bytesIn = 0;
+        this.trafficStats.bytesOut = 0;
+        this.trafficStats.lastUpdate = now;
+      }
+    }, 1000);
+
+    console.log('Traffic monitoring started');
+  }
+
+  /**
+   * Stop traffic monitoring
+   */
+  stopTrafficMonitoring() {
+    if (this.trafficInterval) {
+      clearInterval(this.trafficInterval);
+      this.trafficInterval = null;
+      console.log('Traffic monitoring stopped');
+    }
+  }
+
+  /**
+   * Get current traffic stats
+   */
+  getTrafficStats() {
+    const now = Date.now();
+    const timeDiff = (now - this.trafficStats.lastUpdate) / 1000;
+
+    return {
+      inKBps: timeDiff > 0 ? (this.trafficStats.bytesIn / timeDiff / 1024).toFixed(2) : '0.00',
+      outKBps: timeDiff > 0 ? (this.trafficStats.bytesOut / timeDiff / 1024).toFixed(2) : '0.00',
+      messagesIn: this.trafficStats.messagesIn,
+      messagesOut: this.trafficStats.messagesOut
+    };
+  }
+
+  /**
+   * Start monitoring relay statistics
+   */
+  startRelayMonitoring() {
+    if (!this.config.actAsRelay) return;
+
+    // Log relay stats every 5 minutes
+    setInterval(() => {
+      const stats = this.getRelayStats();
+      console.log('📊 Relay Statistics:', stats);
+      this.emit('relay:stats', stats);
+    }, 5 * 60 * 1000);
+  }
+
+  /**
+   * Get relay statistics
+   * @returns {Object} Relay statistics
+   */
+  getRelayStats() {
+    if (!this.gun || !this.config.actAsRelay) {
+      return {
+        enabled: false
+      };
+    }
+
+    return {
+      enabled: true,
+      mode: 'hybrid',
+      connectedPeers: this.getConnectedPeers().length,
+      actingAsRelay: this.config.actAsRelay,
+      multicastEnabled: this.config.enableMulticast,
+      maxStorage: this.config.maxRelayStorage + ' MB',
+      uptime: process.uptime()
+    };
+  }
+
+  /**
+   * Get list of connected peers
+   * @returns {Array} List of connected peer URLs
+   */
+  getConnectedPeers() {
+    if (!this.gun || !this.gun.back) return [];
+
+    const peers = [];
+    const gunPeers = this.gun.back('opt.peers');
+
+    if (gunPeers) {
+      for (let id in gunPeers) {
+        const peer = gunPeers[id];
+        if (peer && peer.url) {
+          peers.push(peer.url);
+        }
+      }
+    }
+
+    return peers;
+  }
+
+  /**
+   * Update network configuration
+   * @param {Object} newConfig - New configuration
+   */
+  updateConfig(newConfig) {
+    console.log('Updating P2P network configuration:', newConfig);
+
+    const oldActAsRelay = this.config.actAsRelay;
+    this.config = { ...this.config, ...newConfig };
+
+    // If relay mode changed, need to reinitialize
+    if (oldActAsRelay !== this.config.actAsRelay) {
+      console.log('Relay mode changed, reinitialization required');
+      this.emit('config:changed', { requiresRestart: true });
+    } else {
+      this.emit('config:changed', { requiresRestart: false });
+    }
+  }
+
+  /**
+   * Disconnect from P2P network
+   */
+  disconnect() {
+    this.stopHeartbeat();
+    this.stopTrafficMonitoring();
+
+    // Announce offline status
+    if (this.identity && this.gun) {
+      this.updateStatus(this.identity.publicKey, 'offline');
+    }
+
+    // Unsubscribe from all contacts
+    for (const publicKey of this.contactSubscriptions.keys()) {
+      this.unsubscribeFromContact(publicKey);
+    }
+
+    this.isInitialized = false;
+
+    if (this.config.actAsRelay) {
+      console.log('🌐 Relay mode disabled - no longer helping network');
+    }
+
+    console.log('P2P network disconnected');
+  }
+
+  /**
+   * Get connection status
+   */
+  getConnectionStatus() {
+    return {
+      initialized: this.isInitialized,
+      subscriptions: this.contactSubscriptions.size,
+      mode: this.config.actAsRelay ? 'hybrid (client + relay)' : 'client only',
+      relayEnabled: this.config.actAsRelay,
+      multicastEnabled: this.config.enableMulticast,
+      connectedPeers: this.getConnectedPeers().length
+    };
+  }
+}
+
+// Singleton instance
+let p2pInstance = null;
+
+function getP2PInstance() {
+  if (!p2pInstance) {
+    p2pInstance = new P2PNetwork();
+  }
+  return p2pInstance;
+}
+
+module.exports = {
+  getP2PInstance,
+  P2PNetwork,
+};

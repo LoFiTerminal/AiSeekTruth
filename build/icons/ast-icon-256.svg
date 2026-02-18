@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <defs>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="256" height="256" fill="#000000" rx="20"/>
+  
+  <!-- Border -->
+  <rect x="10" y="10" width="236" height="236" rx="15" fill="none" 
+        stroke="#00ff41" stroke-width="2" filter="url(#glow)"/>
+  
+  <!-- AST text - large and centered -->
+  <text x="128" y="155" font-family="monospace" font-size="80" font-weight="bold" 
+        fill="#00ff41" text-anchor="middle" filter="url(#glow)">AST</text>
+  
+  <!-- Small brackets -->
+  <text x="50" y="155" font-family="monospace" font-size="60" font-weight="bold" 
+        fill="#00ffff" text-anchor="middle" opacity="0.8">[</text>
+  <text x="206" y="155" font-family="monospace" font-size="60" font-weight="bold" 
+        fill="#00ffff" text-anchor="middle" opacity="0.8">]</text>
+  
+  <!-- Terminal dots at top -->
+  <circle cx="30" cy="30" r="4" fill="#00ff41" opacity="0.7"/>
+  <circle cx="45" cy="30" r="4" fill="#00ff41" opacity="0.7"/>
+  <circle cx="60" cy="30" r="4" fill="#00ff41" opacity="0.7"/>
+  
+  <!-- Corner markers -->
+  <path d="M 20 40 L 20 25 L 35 25" stroke="#00ffff" stroke-width="1.5" 
+        fill="none" opacity="0.5"/>
+  <path d="M 236 40 L 236 25 L 221 25" stroke="#00ffff" stroke-width="1.5" 
+        fill="none" opacity="0.5"/>
+  <path d="M 20 216 L 20 231 L 35 231" stroke="#00ffff" stroke-width="1.5" 
+        fill="none" opacity="0.5"/>
+  <path d="M 236 216 L 236 231 L 221 231" stroke="#00ffff" stroke-width="1.5" 
+        fill="none" opacity="0.5"/>
+</svg>
