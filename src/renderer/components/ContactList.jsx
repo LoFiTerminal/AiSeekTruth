@@ -149,7 +149,7 @@ function ContactList() {
 
     // Check if request already sent
     if (outgoingRequests.some(r => r.toPublicKey === newContact.publicKey.trim())) {
-      setAddError('Contact request already sent');
+      setAddError('Contact request already sent. Please wait for them to accept or decline.');
       return;
     }
 
@@ -894,20 +894,13 @@ function ContactList() {
 
       {/* Connection Status Footer */}
       <div style={{
-        padding: '12px 16px',
+        padding: '10px 12px',
         borderTop: '1px solid var(--border-secondary)',
         background: 'var(--bg-tertiary)',
         display: 'flex',
         alignItems: 'center',
-        justifyContent: 'space-between',
+        justifyContent: 'flex-end',
       }}>
-        <div style={{
-          fontSize: '10px',
-          color: 'var(--text-muted)',
-          fontFamily: "'Courier New', monospace",
-        }}>
-          E2E ENCRYPTED
-        </div>
         <ConnectionStatus />
       </div>
     </div>

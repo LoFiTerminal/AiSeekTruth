@@ -415,7 +415,7 @@ class MessagingService extends EventEmitter {
 
     // Check if request already exists
     if (storage.contactRequestExists(this.identity.publicKey, recipientPublicKey)) {
-      throw new Error('Contact request already sent');
+      throw new Error('Contact request already sent. Please wait for them to accept or decline.');
     }
 
     // Check if contact already exists

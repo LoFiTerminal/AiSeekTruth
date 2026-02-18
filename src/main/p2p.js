@@ -20,6 +20,9 @@ class P2PNetwork extends EventEmitter {
       lastUpdate: Date.now()
     };
     this.trafficInterval = null;
+    this.pingInterval = null;
+    this.serverStatus = 'unknown';
+    this.lastPingTime = null;
     this.config = {
       actAsRelay: true,      // Default: help strengthen network
       enableMulticast: true,  // Default: discover local peers
@@ -131,6 +134,9 @@ class P2PNetwork extends EventEmitter {
 
     // Log relay statistics periodically
     this.startRelayMonitoring();
+
+    // Start server ping
+    this.startServerPing();
 
     console.log('✅ P2P network initialized (DHT MODE) for:', identity.username);
     console.log('🌐 Peer discovery: AXE DHT + Multicast');
@@ -653,6 +659,81 @@ class P2PNetwork extends EventEmitter {
   }
 
   /**
+   * Ping Railway relay server
+   */
+  async pingRelayServer() {
+    const relayUrl = 'https://aiseektruth-relay-production.up.railway.app/gun';
+
+    try {
+      const startTime = Date.now();
+      const response = await fetch(relayUrl, {
+        method: 'HEAD',
+        timeout: 3000
+      }).catch(() => null);
+
+      const pingTime = Date.now() - startTime;
+
+      if (response && response.ok) {
+        this.serverStatus = 'online';
+        this.lastPingTime = pingTime;
+        console.log(`🟢 Railway relay ping: ${pingTime}ms`);
+        this.emit('relay:ping', { status: 'online', pingTime });
+        this.emit('connection:status', { status: 'online', relay: relayUrl, pingTime });
+      } else {
+        this.serverStatus = 'offline';
+        console.log('🔴 Railway relay ping failed');
+        this.emit('relay:ping', { status: 'offline', pingTime: null });
+        this.emit('connection:status', { status: 'offline', relay: relayUrl });
+      }
+    } catch (error) {
+      this.serverStatus = 'offline';
+      console.log('🔴 Railway relay ping error:', error.message);
+      this.emit('relay:ping', { status: 'offline', error: error.message });
+      this.emit('connection:status', { status: 'offline', relay: relayUrl, error: error.message });
+    }
+  }
+
+  /**
+   * Start pinging relay server every 5 seconds
+   */
+  startServerPing() {
+    if (this.pingInterval) {
+      clearInterval(this.pingInterval);
+    }
+
+    // Ping immediately
+    this.pingRelayServer();
+
+    // Then ping every 5 seconds
+    this.pingInterval = setInterval(() => {
+      this.pingRelayServer();
+    }, 5000);
+
+    console.log('Server ping started (every 5 seconds)');
+  }
+
+  /**
+   * Stop pinging relay server
+   */
+  stopServerPing() {
+    if (this.pingInterval) {
+      clearInterval(this.pingInterval);
+      this.pingInterval = null;
+      console.log('Server ping stopped');
+    }
+  }
+
+  /**
+   * Get server status
+   */
+  getServerStatus() {
+    return {
+      status: this.serverStatus,
+      lastPingTime: this.lastPingTime
+    };
+  }
+
+  /**
    * Update network configuration
    * @param {Object} newConfig - New configuration
    */
@@ -677,6 +758,7 @@ class P2PNetwork extends EventEmitter {
   disconnect() {
     this.stopHeartbeat();
     this.stopTrafficMonitoring();
+    this.stopServerPing();
 
     // Announce offline status
     if (this.identity && this.gun) {

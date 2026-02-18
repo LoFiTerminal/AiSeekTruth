@@ -463,6 +463,18 @@ function initializeServices(identity) {
     }
   });
 
+  p2p.on('connection:status', (data) => {
+    if (mainWindow) {
+      mainWindow.webContents.send('connection:status', data);
+    }
+  });
+
+  p2p.on('relay:ping', (data) => {
+    if (mainWindow) {
+      mainWindow.webContents.send('relay:ping', data);
+    }
+  });
+
   p2p.on('traffic:update', (stats) => {
     if (mainWindow) {
       mainWindow.webContents.send('traffic:update', stats);

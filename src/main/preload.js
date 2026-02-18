@@ -133,6 +133,12 @@ contextBridge.exposeInMainWorld('api', {
     return () => ipcRenderer.removeListener('traffic:update', subscription);
   },
 
+  onRelayPing: (callback) => {
+    const subscription = (event, data) => callback(data);
+    ipcRenderer.on('relay:ping', subscription);
+    return () => ipcRenderer.removeListener('relay:ping', subscription);
+  },
+
   onError: (callback) => {
     const subscription = (event, error) => callback(error);
     ipcRenderer.on('error', subscription);
