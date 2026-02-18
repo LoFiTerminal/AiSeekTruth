@@ -540,7 +540,7 @@ class MessagingService extends EventEmitter {
     // Subscribe to contact's messages
     this.subscribeToContact(contact.publicKey);
 
-    // Send response to requester
+    // Send response to requester (include our encryption public key so they can encrypt DMs)
     try {
       const responseId = await crypto.generateMessageId();
       const response = {
@@ -548,6 +548,9 @@ class MessagingService extends EventEmitter {
         requestId,
         status: 'accepted',
         respondedAt: Date.now(),
+        // CRITICAL: Include acceptor's encryption public key so requester can encrypt DMs
+        acceptorEncryptionPublicKey: this.identity.encryptionPublicKey,
+        acceptorUsername: this.identity.username,
       };
 
       await this.p2p.sendContactRequestResponse(request.fromPublicKey, response);
@@ -592,6 +595,7 @@ class MessagingService extends EventEmitter {
         requestId,
         status: 'declined',
         respondedAt: Date.now(),
+        acceptorUsername: this.identity.username, // Include username for consistency
       };
 
       await this.p2p.sendContactRequestResponse(request.fromPublicKey, response);
@@ -628,15 +632,17 @@ class MessagingService extends EventEmitter {
         // Add contact to contacts list (we're the requester)
         const recipientPublicKey = request.toPublicKey;
 
-        // Get the encryption public key from the request or derive it
-        let encryptionPublicKey = request.fromEncryptionPublicKey;
+        // CRITICAL FIX: Get the encryption public key from the RESPONSE (acceptor's key), not from request
+        // The request contains OUR key, but we need THEIR key to encrypt messages to them
+        let encryptionPublicKey = responseData.acceptorEncryptionPublicKey;
         if (!encryptionPublicKey) {
+          console.warn('⚠️ Response missing acceptorEncryptionPublicKey, attempting to derive...');
           encryptionPublicKey = await crypto.getEncryptionPublicKey(recipientPublicKey);
         }
 
         const contact = {
           publicKey: recipientPublicKey,
-          username: request.fromUsername || `User_${recipientPublicKey.substring(0, 8)}`,
+          username: responseData.acceptorUsername || request.fromUsername || `User_${recipientPublicKey.substring(0, 8)}`,
           encryptionPublicKey,
           status: 'offline',
           lastSeen: Date.now(),
@@ -651,7 +657,7 @@ class MessagingService extends EventEmitter {
         this.subscribeToContact(contact.publicKey);
 
         this.emit('contact:request:response:accepted', { request, contact });
-        console.log('Contact added after acceptance:', contact.username);
+        console.log('✅ Contact added after acceptance:', contact.username);
       } else {
         this.emit('contact:request:response:declined', request);
         console.log('Contact request was declined');

@@ -210,7 +210,7 @@ class P2PNetwork extends EventEmitter {
 
     setTimeout(() => {
       console.log(`✅ Pending DM check complete for ${publicKey.substring(0, 10)}... Found: ${foundMessages.size} messages`);
-    }, 2000);
+    }, 5000);
   }
 
   /**
@@ -478,7 +478,7 @@ class P2PNetwork extends EventEmitter {
     // Give it a moment to fetch existing requests
     setTimeout(() => {
       console.log(`✅ Pending contact request check complete. Found: ${foundRequests.size} requests`);
-    }, 2000);
+    }, 5000);
   }
 
   /**
@@ -594,7 +594,7 @@ class P2PNetwork extends EventEmitter {
 
     setTimeout(() => {
       console.log(`✅ Pending response check complete. Found: ${foundResponses.size} responses`);
-    }, 2000);
+    }, 5000);
   }
 
   /**
