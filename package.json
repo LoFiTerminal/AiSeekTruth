@@ -1,6 +1,6 @@
 {
   "name": "aiseektruth",
-  "version": "1.3.1",
+  "version": "1.3.2",
   "description": "Decentralized encrypted P2P chat application with Signal Protocol encryption",
   "main": "dist-electron/main.js",
   "author": {

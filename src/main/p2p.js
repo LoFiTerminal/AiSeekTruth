@@ -403,48 +403,65 @@ class P2PNetwork extends EventEmitter {
    * @param {Object} requestData - Contact request data
    */
   sendContactRequest(recipientKey, requestData) {
-    if (!this.gun) {
-      return Promise.reject(new Error('P2P network not initialized'));
-    }
+    return new Promise((resolve, reject) => {
+      if (!this.gun) {
+        reject(new Error('P2P network not initialized'));
+        return;
+      }
 
-    const requestEnvelope = {
-      id: requestData.id,
-      fromPublicKey: requestData.fromPublicKey,
-      fromUsername: requestData.fromUsername,
-      fromEncryptionPublicKey: requestData.fromEncryptionPublicKey,
-      message: requestData.message || null,
-      timestamp: requestData.timestamp,
-      type: 'contact_request'
-    };
+      const requestEnvelope = {
+        id: requestData.id,
+        fromPublicKey: requestData.fromPublicKey,
+        fromUsername: requestData.fromUsername,
+        fromEncryptionPublicKey: requestData.fromEncryptionPublicKey,
+        message: requestData.message || null,
+        timestamp: requestData.timestamp,
+        type: 'contact_request'
+      };
 
-    // Generate request ID
-    const requestId = requestData.id || `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      // Generate request ID
+      const requestId = requestData.id || `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
-    // Track outgoing traffic
-    const dataSize = JSON.stringify(requestEnvelope).length;
-    this.trafficStats.bytesOut += dataSize;
-    this.trafficStats.messagesOut++;
+      // Track outgoing traffic
+      const dataSize = JSON.stringify(requestEnvelope).length;
+      this.trafficStats.bytesOut += dataSize;
+      this.trafficStats.messagesOut++;
 
-    // Flat key for contact requests (2-level structure for relay sync)
-    // Format: creq_RECIPIENT
-    const requestKey = `creq_${recipientKey}`;
+      // Flat key for contact requests (2-level structure for relay sync)
+      // Format: creq_RECIPIENT
+      const requestKey = `creq_${recipientKey}`;
 
-    // Send to Gun.js with fire-and-forget pattern (optimistic)
-    // Don't wait for acknowledgment to avoid hanging
-    this.gun
-      .get(requestKey)
-      .get(requestId)
-      .put(requestEnvelope, (ack) => {
-        if (ack.err) {
-          console.error('⚠️ Contact request Gun.js sync FAILED:', ack.err);
-        } else {
-          console.log('✅ Contact request Gun.js sync CONFIRMED:', recipientKey, 'key:', requestKey, `(${dataSize} bytes)`);
-        }
-      });
+      console.log('📤 Contact request queued for sending to:', recipientKey);
+      console.log('   Path:', requestKey);
+      console.log('   Request ID:', requestId);
+      console.log('   Data size:', dataSize, 'bytes');
 
-    // Return immediately (optimistic - assume it will sync)
-    console.log('📤 Contact request queued for sending to:', recipientKey);
-    return Promise.resolve({ requestKey, requestId, dataSize });
+      // Set a timeout in case Gun.js never responds
+      const timeout = setTimeout(() => {
+        console.warn('⚠️ Contact request Gun.js callback timeout after 10s - resolving anyway');
+        resolve({ requestKey, requestId, dataSize, timedOut: true });
+      }, 10000);
+
+      // Send to Gun.js and WAIT for acknowledgment
+      this.gun
+        .get(requestKey)
+        .get(requestId)
+        .put(requestEnvelope, (ack) => {
+          clearTimeout(timeout);
+
+          if (ack.err) {
+            console.error('❌ Contact request Gun.js sync FAILED:', ack.err);
+            console.error('   Path:', requestKey);
+            console.error('   Request ID:', requestId);
+            reject(new Error(`Gun.js error: ${ack.err}`));
+          } else {
+            console.log('✅ Contact request Gun.js sync CONFIRMED:', recipientKey);
+            console.log('   Key:', requestKey);
+            console.log('   Size:', dataSize, 'bytes');
+            resolve({ requestKey, requestId, dataSize });
+          }
+        });
+    });
   }
 
   /**
