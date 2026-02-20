@@ -554,6 +554,8 @@ class P2PNetwork extends EventEmitter {
         requestId: responseData.requestId,
         status: responseData.status, // 'accepted' or 'declined'
         respondedAt: responseData.respondedAt,
+        acceptorEncryptionPublicKey: responseData.acceptorEncryptionPublicKey, // CRITICAL for DM encryption
+        acceptorUsername: responseData.acceptorUsername, // Display name
         type: 'contact_request_response'
       };
 
